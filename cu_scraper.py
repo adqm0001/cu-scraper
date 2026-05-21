@@ -1,18 +1,13 @@
 import asyncio
-from dotenv import load_dotenv
 from bs4 import BeautifulSoup
-import os
-load_dotenv()
 
 from playwright.async_api import async_playwright, Playwright, expect
 
-async def run(playwright: Playwright, term: str):
+async def run(playwright: Playwright, term: str, username: str, password: str):
     webkit = playwright.webkit
-    browser = await webkit.launch()
+    browser = await webkit.launch(headless=False)
     context = await browser.new_context()
     page = await context.new_page()
-    username = os.getenv("CU_USERNAME")
-    password = os.getenv("CU_PASSWORD")
     await page.goto("https://central.carleton.ca")
     await expect(page.get_by_role("textbox", name="User Account")).to_be_visible()
     await page.get_by_role("textbox", name="User Account").click()
@@ -80,13 +75,11 @@ async def run(playwright: Playwright, term: str):
 
     return student_name, student_number, student_info_dict, courses, student_program
 
-async def get_terms(playwright: Playwright):
+async def get_terms(playwright: Playwright, username: str, password: str):
     webkit = playwright.webkit
-    browser = await webkit.launch()
+    browser = await webkit.launch(headless=False)
     context = await browser.new_context()
     page = await context.new_page()
-    username = os.getenv("CU_USERNAME")
-    password = os.getenv("CU_PASSWORD")
     await page.goto("https://central.carleton.ca")
     await expect(page.get_by_role("textbox", name="User Account")).to_be_visible()
     await page.get_by_role("textbox", name="User Account").click()
@@ -96,7 +89,11 @@ async def get_terms(playwright: Playwright):
     await page.get_by_role("textbox", name="Password").fill(password)
     await expect(page.get_by_role("button", name="Sign in")).to_be_visible()
     await page.get_by_role("button", name="Sign in").click()
-    await expect(page.get_by_role("link", name="Display grades")).to_be_visible()
+    try:
+        await expect(page.get_by_role("link", name="Display grades")).to_be_visible()
+    except:
+        await browser.close()
+        return None
     await page.get_by_role("link", name="Display grades").click()
     await expect(page.get_by_label("Select a Term:")).to_be_visible()
     terms = await page.get_by_label("Select a Term:").evaluate(
@@ -105,26 +102,22 @@ async def get_terms(playwright: Playwright):
     await browser.close()
     return [t for t in terms if t]
 
-async def main():
+async def info(username, password):
     async with async_playwright() as playwright: 
-        terms = await get_terms(playwright)
+        terms = await get_terms(playwright, username, password)
+
+        if terms is None:
+            return None
 
         all_courses = {} 
         student_name = student_number = student_info_dict = student_program = None
 
         for i, term in enumerate(terms):
             if i == 0:
-                student_name, student_number, student_info_dict, courses, student_program = await run(playwright, term)
+                await asyncio.sleep(3)
+                student_name, student_number, student_info_dict, courses, student_program = await run(playwright, term, username, password)
             else:
-                _, _, _, courses, _ = await run(playwright, term)
+                await asyncio.sleep(3) 
+                _, _, _, courses, _ = await run(playwright, term, username, password)
             all_courses[term] = courses
-
-    # Small test 
-    print(all_courses)
-    print("---------------")
-    print(student_program)
-    print("---------------")
-    print(student_info_dict)
-    return student_name, student_number, student_info_dict, student_program, all_courses
-
-asyncio.run(main())
+        return student_name, student_number, student_info_dict, student_program, all_courses
