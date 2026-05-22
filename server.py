@@ -1,7 +1,10 @@
 from dotenv import load_dotenv
 from datetime import datetime, timedelta
+from cu_scraper import info
 from db import register as db_register, fetch_and_store_grades, get_user, get_grades as db_get_grades, delete_user as db_delete_user
+from db import get_user_credentials
 import os
+from poller import send_welcome_email
 from fastapi import BackgroundTasks, FastAPI, HTTPException, Depends
 from jose import jwt
 from pydantic import BaseModel
@@ -11,7 +14,7 @@ from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 load_dotenv()
 
 JWT_SECRET = os.getenv("JWT_SECRET")
-JWT_EXPIRE_MINUTES = int(os.getenv("JWT_EXPIRE_MINUTES"))
+JWT_EXPIRE_MINUTES = int(os.getenv("JWT_EXPIRE_MINUTES") or 60)
 
 app = FastAPI()
 security = HTTPBearer()
@@ -41,6 +44,7 @@ async def register(req: RegisterRequest, background_tasks: BackgroundTasks):
         raise HTTPException(status_code=409, detail=userexists_msg)
     else:
         background_tasks.add_task(fetch_and_store_grades, registration, req.username, req.password)
+        background_tasks.add_task(send_welcome_email, req.email, req.username)
 
         token = jwt.encode(
                 {"sub": registration, "exp": datetime.utcnow() + timedelta(minutes=JWT_EXPIRE_MINUTES)},
@@ -78,6 +82,25 @@ async def get_grades(credentials: Annotated[HTTPAuthorizationCredentials, Depend
     grades = await db_get_grades(user_id)
 
     return grades
+
+@app.post("/grades/check")
+async def check_grades(credentials: Annotated[HTTPAuthorizationCredentials, Depends(security)]):
+    token = credentials.credentials
+    try:
+        payload = jwt.decode(token, JWT_SECRET, algorithms=["HS256"])
+    except:
+        raise HTTPException(status_code=401, detail="Unauthorized access")
+    user_id = payload["sub"]
+
+    user_creds = await get_user_credentials(user_id)
+    if user_creds == "user_id not found":
+        raise HTTPException(status_code=404, detail="user not found")
+    result = await info(user_creds["username"], user_creds["password"])
+    if result is None:
+        return "invalid credentials"
+    _,_,_,_, all_courses = result 
+    
+    return all_courses
 
 @app.delete("/users/me")
 async def delete_user(credentials: Annotated[HTTPAuthorizationCredentials, Depends(security)]):
