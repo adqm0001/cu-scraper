@@ -1,41 +1,53 @@
-from cu_scraper import info
+from cu_scraper import info, check_info
 import psycopg
 from dotenv import load_dotenv
 import os
 from cryptography.fernet import Fernet
+import bcrypt
 load_dotenv()
 
 key = os.getenv("FERNET_KEY")
 
 fernet = Fernet(key)
 
-async def store(username: str, password: str, email: str):
-    result = await info(username, password)
-    if result is None:
+async def register(username: str, password: str, email: str):
+    valid_creds = await check_info(username, password)
+    if not valid_creds:
         return "invalid credentials"
-    student_name, student_number, student_info_dict, student_program, all_courses = result 
     
-
     enc_password = fernet.encrypt(password.encode())
+    hashed_password = bcrypt.hashpw(password.encode(), bcrypt.gensalt())
 
     async with await psycopg.AsyncConnection.connect("dbname=cu_scraper user=postgres") as conn:
         async with conn.cursor() as cur:
 
             await cur.execute("""
                 INSERT INTO users (
-                username, password, email)
+                username, password, email, hashed_password)
                 VALUES (
-                %s , %s, %s)
+                %s , %s, %s, %s)
                 ON CONFLICT (username) DO NOTHING
                 RETURNING user_id
                 """,
-                (username, enc_password, email))
+                (username, enc_password, email, hashed_password.decode()))
             
             row = await cur.fetchone()
             if row is None:
                 return "username already exists"
             user_id = row[0]
 
+        await conn.commit()
+
+    return user_id
+
+async def fetch_and_store_grades(user_id: str, username: str, password: str):
+    result = await info(username, password)
+    if result is None:
+        return "invalid credentials"
+    student_name, student_number, student_info_dict, student_program, all_courses = result 
+    
+    async with await psycopg.AsyncConnection.connect("dbname=cu_scraper user=postgres") as conn:
+        async with conn.cursor() as cur:
             for term_code, courses in all_courses.items():
                 await cur.execute("""
                     INSERT INTO terms (
@@ -138,7 +150,22 @@ async def update_grades(user_id: str, courses: dict):
         
         await conn.commit()
 
-async def gets_users():
+async def get_user(username: str):
+    async with await psycopg.AsyncConnection.connect("dbname=cu_scraper user=postgres") as conn:
+        async with conn.cursor() as cur:
+
+            await cur.execute("""
+                SELECT user_id, hashed_password
+                FROM users
+                WHERE username = %s
+                """, (username,))
+
+            row = await cur.fetchone()
+            if row is None:
+                return "username not found"
+            return {"user_id": row[0], "hashed_password": row[1]}
+
+async def get_users():
     async with await psycopg.AsyncConnection.connect("dbname=cu_scraper user=postgres") as conn:
         async with conn.cursor() as cur:
 
@@ -148,7 +175,7 @@ async def gets_users():
 
             rows = await cur.fetchall()
 
-            return [{"user_id": row[0], "username": row[1], "password": fernet.decrypt(row[2].encode()).decode(), "email": row[3]} for row in rows]
+            return [{"user_id": row[0], "username": row[1], "password": fernet.decrypt(row[2]).decode(), "email": row[3]} for row in rows]
 
 async def delete_user(user_id: str):
     async with await psycopg.AsyncConnection.connect("dbname=cu_scraper user=postgres") as conn:

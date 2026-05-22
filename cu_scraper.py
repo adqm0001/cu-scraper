@@ -102,6 +102,12 @@ async def get_terms(playwright: Playwright, username: str, password: str):
     await browser.close()
     return [t for t in terms if t]
 
+async def check_info(username, password):
+    async with async_playwright() as playwright: 
+        terms = await get_terms(playwright, username, password)
+
+        return terms is not None
+
 async def info(username, password):
     async with async_playwright() as playwright: 
         terms = await get_terms(playwright, username, password)
