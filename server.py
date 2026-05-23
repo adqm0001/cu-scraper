@@ -47,7 +47,7 @@ async def register(req: RegisterRequest, background_tasks: BackgroundTasks):
         background_tasks.add_task(send_welcome_email, req.email, req.username)
 
         token = jwt.encode(
-                {"sub": registration, "exp": datetime.utcnow() + timedelta(minutes=JWT_EXPIRE_MINUTES)},
+                {"sub": str(registration), "exp": datetime.utcnow() + timedelta(minutes=JWT_EXPIRE_MINUTES)},
                 JWT_SECRET,
                 algorithm="HS256"
         )
@@ -64,7 +64,7 @@ async def login(req: LoginRequest):
         if not bcrypt.checkpw(req.password.encode(), user["hashed_password"].encode()):
             raise HTTPException(status_code=401, detail="invalid credentials")
         token = jwt.encode(
-                {"sub": user["user_id"], "exp": datetime.utcnow() + timedelta(minutes=JWT_EXPIRE_MINUTES)},
+                {"sub": str(user["user_id"]), "exp": datetime.utcnow() + timedelta(minutes=JWT_EXPIRE_MINUTES)},
                 JWT_SECRET,
                 algorithm="HS256"
         )
@@ -107,7 +107,8 @@ async def delete_user(credentials: Annotated[HTTPAuthorizationCredentials, Depen
     token = credentials.credentials
     try:
         payload = jwt.decode(token, JWT_SECRET, algorithms=["HS256"])
-    except:
+    except Exception as e:
+        print(f"JWT error: {e}")
         raise HTTPException(status_code=401, detail="Unauthorized access")
     user_id = payload["sub"]
 

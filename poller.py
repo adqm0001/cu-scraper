@@ -10,9 +10,9 @@ load_dotenv()
 def send_welcome_email(email, username):
     subject = "CU Scraper - Welcome Message"
     body = f"""Dear {username},
-    
-    Thank you for subscribing to automatic grade updates on the CU Scraper Website.
-    You will now be notified whenever one of your grades update on the Carleton Central Website."""
+
+Thank you for subscribing to automatic grade updates on the CU Scraper Website.
+You will now be notified whenever one of your grades update on the Carleton Central Website."""
 
     sender = os.getenv("GOOGLE_EMAIL")
     password = os.getenv("GOOGLE_PASSWORD")
