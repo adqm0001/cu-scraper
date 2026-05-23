@@ -4,7 +4,7 @@ from bs4 import BeautifulSoup
 from playwright.async_api import async_playwright, Playwright, expect
 
 async def run(playwright: Playwright, term: str, username: str, password: str):
-    webkit = playwright.webkit
+    webkit = playwright.chromium
     browser = await webkit.launch(headless=False)
     context = await browser.new_context()
     page = await context.new_page()
@@ -76,7 +76,7 @@ async def run(playwright: Playwright, term: str, username: str, password: str):
     return student_name, student_number, student_info_dict, courses, student_program
 
 async def get_terms(playwright: Playwright, username: str, password: str):
-    webkit = playwright.webkit
+    webkit = playwright.chromium
     browser = await webkit.launch(headless=False)
     context = await browser.new_context()
     page = await context.new_page()
