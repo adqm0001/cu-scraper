@@ -2,7 +2,7 @@ import smtplib
 from dotenv import load_dotenv
 import os
 from email.mime.text import MIMEText 
-from db import get_users, get_grades, check_changes, update_grades
+from db import get_users, check_changes, update_grades
 from cu_scraper import info
 import asyncio
 load_dotenv()
@@ -54,25 +54,37 @@ def send_grade_change_email(email, changes):
         smtp_server.sendmail(sender, email, msg.as_string())
     print("Message sent!")
 
+async def scrape_user(user, sem):
+    user_id = user["user_id"]
+    username = user["username"]
+    password = user["password"]
+    email = user["email"]
+    async with sem: 
+        result = await info(username, password)
+        if result is None:
+            return "user not found" 
+        _,_,_,_, fresh_courses = result
+    changes = await check_changes(user_id, fresh_courses)
+    if changes:
+        send_grade_change_email(email, changes)
+        await update_grades(user_id, changes)
+
+sem = asyncio.Semaphore(3)
 async def poll():
     while True:
+        failed = []
         users = await get_users()
-        for user in users:
-            # scrape, check, email, update
-            user_id = user["user_id"]
-            username = user["username"]
-            password = user["password"]
-            email = user["email"]
-            result = await info(username, password)
-            if result is None:
-                continue
-            _,_,_,_, fresh_courses = result
-            changes = await check_changes(user_id, fresh_courses)
-            if changes:
-                send_grade_change_email(email, changes)
-                await update_grades(user_id, changes)
+        results = await asyncio.gather(*[scrape_user(user, sem) for user in users], return_exceptions=True)
+        for user, result in zip(users, results):
+            if isinstance(result, Exception):
+                failed.append(user)
+        if failed:
+            results = await asyncio.gather(*[scrape_user(user, sem) for user in failed], return_exceptions=True)
+            for r in results:
+                if isinstance(r, Exception):
+                    print(f"scrape failed: {r}")
 
-
+        
         await asyncio.sleep(1800)
 
 if __name__ == "__main__":
