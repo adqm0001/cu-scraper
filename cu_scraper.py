@@ -49,14 +49,6 @@ async def get_terms(cookies):
 
         return terms
 
-async def check_info(username, password):
-    async with async_playwright() as playwright: 
-        cookies = await login(playwright, username, password)
-        if cookies is None:
-            return False
-        terms = await get_terms(cookies)
-        return terms is not None
-
 async def get_grades(cookies, term):
     cookies_dict = build_cookies(cookies)
 
@@ -129,5 +121,6 @@ async def info(username, password):
             else:
                 _, _, _, courses, _ = await get_grades(cookies, term) 
             all_courses[term] = courses 
-        return student_name, student_number, student_info_dict, student_program, all_courses 
+        return student_name, student_number, student_info_dict, student_program, all_courses, cookies 
+
 

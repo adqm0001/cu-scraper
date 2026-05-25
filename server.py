@@ -4,7 +4,7 @@ from cu_scraper import info
 from db import register as db_register, fetch_and_store_grades, get_user, get_grades as db_get_grades, delete_user as db_delete_user
 from db import get_user_credentials
 import os
-from poller import send_welcome_email
+from poller import send_welcome_email, send_goodbye_email
 from fastapi import BackgroundTasks, FastAPI, HTTPException, Depends
 from jose import jwt
 from pydantic import BaseModel
@@ -34,20 +34,20 @@ async def read_root():
 
 @app.post("/register")
 async def register(req: RegisterRequest, background_tasks: BackgroundTasks):
-    registration = await db_register(req.username, req.password, req.email)
+    result = await db_register(req.username, req.password, req.email)
     invalid_msg = "invalid credentials"
     userexists_msg = "username already exists"
-
-    if registration == invalid_msg:
-       raise HTTPException(status_code=401, detail=invalid_msg) 
-    elif registration == userexists_msg:
+    if result == "invalid credentials":
+        raise HTTPException(status_code=401, detail=invalid_msg) 
+    elif result == userexists_msg:
         raise HTTPException(status_code=409, detail=userexists_msg)
     else:
-        background_tasks.add_task(fetch_and_store_grades, registration, req.username, req.password)
+        user_id, result_info = result
+        background_tasks.add_task(fetch_and_store_grades, user_id, result_info)
         background_tasks.add_task(send_welcome_email, req.email, req.username)
 
         token = jwt.encode(
-                {"sub": str(registration), "exp": datetime.utcnow() + timedelta(minutes=JWT_EXPIRE_MINUTES)},
+                {"sub": str(user_id), "exp": datetime.utcnow() + timedelta(minutes=JWT_EXPIRE_MINUTES)},
                 JWT_SECRET,
                 algorithm="HS256"
         )
@@ -98,12 +98,12 @@ async def check_grades(credentials: Annotated[HTTPAuthorizationCredentials, Depe
     result = await info(user_creds["username"], user_creds["password"])
     if result is None:
         return "invalid credentials"
-    _,_,_,_, all_courses = result 
+    _,_,_,_, all_courses, _ = result 
     
     return all_courses
 
 @app.delete("/users/me")
-async def delete_user(credentials: Annotated[HTTPAuthorizationCredentials, Depends(security)]):
+async def delete_user(background_tasks: BackgroundTasks, credentials: Annotated[HTTPAuthorizationCredentials, Depends(security)]):
     token = credentials.credentials
     try:
         payload = jwt.decode(token, JWT_SECRET, algorithms=["HS256"])
@@ -111,6 +111,12 @@ async def delete_user(credentials: Annotated[HTTPAuthorizationCredentials, Depen
         print(f"JWT error: {e}")
         raise HTTPException(status_code=401, detail="Unauthorized access")
     user_id = payload["sub"]
+    user_creds = await get_user_credentials(user_id)
+    if user_creds == "user_id not found":
+        raise HTTPException(status_code=404, detail="user not found")
+    username = user_creds["username"]
+    email = user_creds["email"]
+    background_tasks.add_task(send_goodbye_email, email, username)
 
     await db_delete_user(user_id) 
 

@@ -26,7 +26,7 @@ You will now be notified whenever one of your grades update on the Carleton Cent
     with smtplib.SMTP_SSL('smtp.gmail.com', 465) as smtp_server:
         smtp_server.login(sender, password)
         smtp_server.sendmail(sender, email, msg.as_string())
-    print("Message sent!")
+    print("Welcome message sent!")
 
 def send_grade_change_email(email, changes):
     subject = "CU Scraper - Grade Update"
@@ -52,7 +52,27 @@ def send_grade_change_email(email, changes):
     with smtplib.SMTP_SSL('smtp.gmail.com', 465) as smtp_server:
         smtp_server.login(sender, password)
         smtp_server.sendmail(sender, email, msg.as_string())
-    print("Message sent!")
+    print("Grades update email sent!")
+
+def send_goodbye_email(email, username):
+    subject = "CU Scraper - Account Deleted"
+    body = f"""Dear {username},
+
+Your CU Scraper account has been successfully deleted. You will no longer receive grade update notifications."""
+
+    sender = os.getenv("GOOGLE_EMAIL")
+    password = os.getenv("GOOGLE_PASSWORD")
+    assert sender and password, "email credentials not found in .env"
+
+    msg = MIMEText(body)
+    msg['Subject'] = subject
+    msg['From'] = sender
+    msg['To'] = email
+
+    with smtplib.SMTP_SSL('smtp.gmail.com', 465) as smtp_server:
+        smtp_server.login(sender, password)
+        smtp_server.sendmail(sender, email, msg.as_string())
+    print("Goodbye email sent!")
 
 async def scrape_user(user, sem):
     user_id = user["user_id"]
@@ -63,7 +83,7 @@ async def scrape_user(user, sem):
         result = await info(username, password)
         if result is None:
             return "user not found" 
-        _,_,_,_, fresh_courses = result
+        _,_,_,_, fresh_courses,_ = result
     changes = await check_changes(user_id, fresh_courses)
     if changes:
         send_grade_change_email(email, changes)
