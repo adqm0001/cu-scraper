@@ -7,6 +7,8 @@ import bcrypt
 load_dotenv()
 
 key = os.getenv("FERNET_KEY")
+db = os.getenv("DATABASE_URL")
+assert db, "Database not found in .env"
 assert key, "Key not found in .env"
 fernet = Fernet(key)
 
@@ -18,7 +20,7 @@ async def register(username: str, password: str, email: str):
     enc_password = fernet.encrypt(password.encode()).decode()
     hashed_password = bcrypt.hashpw(password.encode(), bcrypt.gensalt())
 
-    async with await psycopg.AsyncConnection.connect("dbname=cu_scraper user=postgres") as conn:
+    async with await psycopg.AsyncConnection.connect(db) as conn:
         async with conn.cursor() as cur:
 
             await cur.execute("""
@@ -45,7 +47,7 @@ async def fetch_and_store_grades(user_id: str, result_info):
         return "invalid credentials"
     _,_,_,_, all_courses,_ = result_info
     
-    async with await psycopg.AsyncConnection.connect("dbname=cu_scraper user=postgres") as conn:
+    async with await psycopg.AsyncConnection.connect(db) as conn:
         async with conn.cursor() as cur:
             for term_code, courses in all_courses.items():
                 await cur.execute("""
@@ -72,7 +74,7 @@ async def fetch_and_store_grades(user_id: str, result_info):
             await conn.commit()
 
 async def get_user_credentials(user_id: str):
-    async with await psycopg.AsyncConnection.connect("dbname=cu_scraper user=postgres") as conn:
+    async with await psycopg.AsyncConnection.connect(db) as conn:
         async with conn.cursor() as cur:
                 await cur.execute("""
                     SELECT username, password, email
@@ -89,7 +91,7 @@ async def get_user_credentials(user_id: str):
 
 
 async def get_grades(user_id: str, term_code=None):
-    async with await psycopg.AsyncConnection.connect("dbname=cu_scraper user=postgres") as conn:
+    async with await psycopg.AsyncConnection.connect(db) as conn:
         async with conn.cursor() as cur:
 
             base = """
@@ -152,7 +154,7 @@ async def check_changes(user_id: str, fresh_courses: dict):
     return changes
 
 async def update_grades(user_id: str, courses: dict):
-    async with await psycopg.AsyncConnection.connect("dbname=cu_scraper user=postgres") as conn:
+    async with await psycopg.AsyncConnection.connect(db) as conn:
         async with conn.cursor() as cur:
 
             for term in courses: 
@@ -167,7 +169,7 @@ async def update_grades(user_id: str, courses: dict):
         await conn.commit()
 
 async def get_user(username: str):
-    async with await psycopg.AsyncConnection.connect("dbname=cu_scraper user=postgres") as conn:
+    async with await psycopg.AsyncConnection.connect(db) as conn:
         async with conn.cursor() as cur:
 
             await cur.execute("""
@@ -182,7 +184,7 @@ async def get_user(username: str):
             return {"user_id": row[0], "hashed_password": row[1]}
 
 async def get_users():
-    async with await psycopg.AsyncConnection.connect("dbname=cu_scraper user=postgres") as conn:
+    async with await psycopg.AsyncConnection.connect(db) as conn:
         async with conn.cursor() as cur:
 
             await cur.execute("""
@@ -194,7 +196,7 @@ async def get_users():
             return [{"user_id": row[0], "username": row[1], "password": fernet.decrypt(row[2].encode()).decode(), "email": row[3]} for row in rows]
 
 async def delete_user(user_id: str):
-    async with await psycopg.AsyncConnection.connect("dbname=cu_scraper user=postgres") as conn:
+    async with await psycopg.AsyncConnection.connect(db) as conn:
         async with conn.cursor() as cur:
 
             await cur.execute("""

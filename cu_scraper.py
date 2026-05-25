@@ -6,7 +6,7 @@ from playwright.async_api import async_playwright, Playwright, expect
 
 async def login(playwright: Playwright, username: str, password: str):
     webkit = playwright.chromium
-    browser = await webkit.launch(headless=False)
+    browser = await webkit.launch(headless=True)
     context = await browser.new_context()
     page = await context.new_page()
     await page.goto("https://central.carleton.ca")
