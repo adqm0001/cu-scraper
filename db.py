@@ -18,6 +18,7 @@ async def register(username: str, password: str, email: str):
         return "invalid credentials"
     
     enc_password = fernet.encrypt(password.encode()).decode()
+    enc_email = fernet.encrypt(email.encode()).decode()
     hashed_password = bcrypt.hashpw(password.encode(), bcrypt.gensalt())
 
     async with await psycopg.AsyncConnection.connect(db) as conn:
@@ -31,7 +32,7 @@ async def register(username: str, password: str, email: str):
                 ON CONFLICT (username) DO NOTHING
                 RETURNING user_id
                 """,
-                (username, enc_password, email, hashed_password.decode()))
+                (username, enc_password, enc_email, hashed_password.decode()))
             
             row = await cur.fetchone()
             if row is None:
@@ -64,13 +65,18 @@ async def fetch_and_store_grades(user_id: str, result_info):
                 term_id = row[0]
             
                 for course in courses:
+                    enc_grade = fernet.encrypt(course["finalgrade"].encode()).decode()
+                    enc_attempted = fernet.encrypt(course["attempted"].encode()).decode()
+                    enc_earned = fernet.encrypt(course["earned"].encode()).decode()
+                    enc_gpahours = fernet.encrypt(course["gpahours"].encode()).decode()
+                    enc_qualitypoints = fernet.encrypt(course["qualitypoints"].encode()).decode()
                     await cur.execute("""
                         INSERT INTO courses (
                         term_id, crn, subject, course, section, coursetitle, finalgrade, attempted, earned, gpahours, qualitypoints) VALUES (
                         %s, %s, %s, %s, %s, %s, %s, %s , %s, %s, %s)
                         ON CONFLICT (term_id, crn) DO NOTHING
                         """,
-                        (term_id, course["crn"], course["subject"], course["course"], course["section"], course["coursetitle"], course["finalgrade"], course["attempted"], course["earned"], course["gpahours"], course["qualitypoints"]))
+                        (term_id, course["crn"], course["subject"], course["course"], course["section"], course["coursetitle"], enc_grade, enc_attempted, enc_earned, enc_gpahours, enc_qualitypoints))
             await conn.commit()
 
 async def get_user_credentials(user_id: str):
@@ -86,8 +92,7 @@ async def get_user_credentials(user_id: str):
                 row = await cur.fetchone()
                 if row is None:
                     return "user_id not found"
-                print(row[1])
-    return {"username": row[0], "password": fernet.decrypt(row[1].encode()).decode(), "email": row[2]}
+    return {"username": row[0], "password": fernet.decrypt(row[1].encode()).decode(), "email": fernet.decrypt(row[2].encode()).decode()}
 
 
 async def get_grades(user_id: str, term_code=None):
@@ -122,11 +127,11 @@ async def get_grades(user_id: str, term_code=None):
                     "course": row[3],
                     "section": row[4],
                     "coursetitle": row[5],
-                    "finalgrade": row[6],
-                    "attempted": row[7],
-                    "earned": row[8],
-                    "gpahours": row[9],
-                    "qualitypoints": row[10] 
+                    "finalgrade": fernet.decrypt(row[6].encode()).decode(),
+                    "attempted": fernet.decrypt(row[7].encode()).decode(),
+                    "earned": fernet.decrypt(row[8].encode()).decode(),
+                    "gpahours": fernet.decrypt(row[9].encode()).decode(),
+                    "qualitypoints": fernet.decrypt(row[10].encode()).decode(),
                 })
 
             return grades 
@@ -138,9 +143,9 @@ async def check_changes(user_id: str, fresh_courses: dict):
         if db_grades[term] == fresh_courses[term]:
             continue
         else:
-            for course in db_grades[term]:
+            for fresh_course in fresh_courses[term]:
                 found = False
-                for fresh_course in fresh_courses[term]:
+                for course in db_grades[term]:
                     if course["crn"] == fresh_course["crn"]:
                         found = True
                         if course["finalgrade"] != fresh_course["finalgrade"]:
@@ -150,7 +155,15 @@ async def check_changes(user_id: str, fresh_courses: dict):
                 if not found:
                     if term not in changes:
                         changes[term] = []
-                    changes[term].append(course)
+                    changes[term].append(fresh_course)
+
+            for course in db_grades[term]:
+                found = False
+                for fresh_course in fresh_courses[term]:
+                    if course["crn"] == fresh_course["crn"]:
+                        found = True
+                if not found:
+                    await delete_course(user_id, term, course["crn"]) 
     return changes
 
 async def update_grades(user_id: str, courses: dict):
@@ -159,12 +172,17 @@ async def update_grades(user_id: str, courses: dict):
 
             for term in courses: 
                 for course in courses[term]:
+                    enc_grade = fernet.encrypt(course["finalgrade"].encode()).decode()
+                    enc_attempted = fernet.encrypt(course["attempted"].encode()).decode()
+                    enc_earned = fernet.encrypt(course["earned"].encode()).decode()
+                    enc_gpahours = fernet.encrypt(course["gpahours"].encode()).decode()
+                    enc_qualitypoints = fernet.encrypt(course["qualitypoints"].encode()).decode()
                     await cur.execute("""
                         UPDATE courses
                         SET crn = %s, subject = %s, course = %s, section = %s, coursetitle = %s, finalgrade = %s, attempted = %s, earned = %s, gpahours = %s, qualitypoints = %s
                         WHERE term_id = (SELECT term_id FROM terms WHERE user_id = %s AND term_code = %s)
                         AND crn = %s
-                    """, (course["crn"], course["subject"], course["course"], course["section"], course["coursetitle"], course["finalgrade"], course["attempted"], course["earned"], course["gpahours"], course["qualitypoints"], user_id, term, course["crn"]))
+                    """, (course["crn"], course["subject"], course["course"], course["section"], course["coursetitle"], enc_grade, enc_attempted, enc_earned, enc_gpahours, enc_qualitypoints, user_id, term, course["crn"]))
         
         await conn.commit()
 
@@ -183,17 +201,28 @@ async def get_user(username: str):
                 return "username not found"
             return {"user_id": row[0], "hashed_password": row[1]}
 
-async def get_users():
-    async with await psycopg.AsyncConnection.connect(db) as conn:
+async def get_users(): 
+    async with await psycopg.AsyncConnection.connect(db) as conn: 
         async with conn.cursor() as cur:
-
             await cur.execute("""
                 SELECT user_id, username, password, email from users 
                 """)
 
             rows = await cur.fetchall()
 
-            return [{"user_id": row[0], "username": row[1], "password": fernet.decrypt(row[2].encode()).decode(), "email": row[3]} for row in rows]
+            return [{"user_id": row[0], "username": row[1], "password": fernet.decrypt(row[2].encode()).decode(), "email": fernet.decrypt(row[3].encode()).decode()} for row in rows]
+
+async def delete_course(user_id: str, term: str, crn: str):
+    async with await psycopg.AsyncConnection.connect(db) as conn:
+        async with conn.cursor() as cur:
+
+            await cur.execute("""
+                DELETE FROM courses
+                WHERE term_id = (SELECT term_id FROM terms WHERE user_id = %s AND term_code = %s)
+                AND crn = %s
+                """, (user_id, term, crn))
+
+            await conn.commit()
 
 async def delete_user(user_id: str):
     async with await psycopg.AsyncConnection.connect(db) as conn:
@@ -204,8 +233,6 @@ async def delete_user(user_id: str):
                 """, (user_id,))
 
             await conn.commit()
-
-
 
 
 
