@@ -2,7 +2,7 @@ import smtplib
 from dotenv import load_dotenv
 import os
 from email.mime.text import MIMEText 
-from db import get_users, check_changes, update_grades
+from db import get_users, check_changes, update_grades, update_last_checked
 from cu_scraper import info
 import asyncio
 load_dotenv()
@@ -88,6 +88,7 @@ async def scrape_user(user, sem):
     if changes:
         send_grade_change_email(email, changes)
         await update_grades(user_id, changes)
+    await update_last_checked(user_id)
 
 sem = asyncio.Semaphore(3)
 async def poll():

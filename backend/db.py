@@ -193,6 +193,12 @@ async def update_grades(user_id: str, courses: dict):
         
         await conn.commit()
 
+async def update_last_checked(user_id: str):
+    async with await psycopg.AsyncConnection.connect(db) as conn:
+        async with conn.cursor() as cur:
+            await cur.execute("UPDATE users SET last_updated = NOW() WHERE user_id = %s", (user_id,))
+            await conn.commit()
+
 async def get_user(username: str):
     async with await psycopg.AsyncConnection.connect(db) as conn:
         async with conn.cursor() as cur:
