@@ -11,6 +11,7 @@ from pydantic import BaseModel
 import bcrypt
 from typing import Annotated
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from fastapi.middleware.cors import CORSMiddleware
 load_dotenv()
 
 JWT_SECRET = os.getenv("JWT_SECRET")
@@ -18,6 +19,13 @@ JWT_EXPIRE_MINUTES = int(os.getenv("JWT_EXPIRE_MINUTES") or 60)
 
 app = FastAPI()
 security = HTTPBearer()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 class RegisterRequest(BaseModel):
     username: str
@@ -79,9 +87,9 @@ async def get_grades(credentials: Annotated[HTTPAuthorizationCredentials, Depend
         raise HTTPException(status_code=401, detail="Unauthorized access")
     user_id = payload["sub"]
 
-    grades = await db_get_grades(user_id)
+    grades, last_updated = await db_get_grades(user_id)
 
-    return grades
+    return {"grades": grades, "last_updated": last_updated}
 
 @app.post("/grades/check")
 async def check_grades(credentials: Annotated[HTTPAuthorizationCredentials, Depends(security)]):
@@ -98,6 +106,7 @@ async def check_grades(credentials: Annotated[HTTPAuthorizationCredentials, Depe
     result = await info(user_creds["username"], user_creds["password"])
     if result is None:
         return "invalid credentials"
+    await fetch_and_store_grades(user_id, result);
     _,_,_,_, all_courses, _ = result 
     
     return all_courses

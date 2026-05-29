@@ -77,6 +77,9 @@ async def fetch_and_store_grades(user_id: str, result_info):
                         ON CONFLICT (term_id, crn) DO NOTHING
                         """,
                         (term_id, course["crn"], course["subject"], course["course"], course["section"], course["coursetitle"], enc_grade, enc_attempted, enc_earned, enc_gpahours, enc_qualitypoints))
+
+            await cur.execute("UPDATE users SET last_updated = NOW() WHERE user_id = %s", (user_id,))
+
             await conn.commit()
 
 async def get_user_credentials(user_id: str):
@@ -134,10 +137,14 @@ async def get_grades(user_id: str, term_code=None):
                     "qualitypoints": fernet.decrypt(row[10].encode()).decode(),
                 })
 
-            return grades 
+            await cur.execute("SELECT last_updated FROM users WHERE user_id = %s", (user_id,))
+            row = await cur.fetchone()
+            last_updated = row[0].isoformat()
+
+            return grades, last_updated
 
 async def check_changes(user_id: str, fresh_courses: dict):
-    db_grades = await get_grades(user_id)
+    db_grades, _ = await get_grades(user_id)
     changes = {} 
     for term in db_grades:
         if db_grades[term] == fresh_courses[term]:
