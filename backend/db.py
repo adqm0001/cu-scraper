@@ -55,13 +55,13 @@ async def fetch_and_store_grades(user_id: str, result_info):
                     INSERT INTO terms (
                     user_id, term_code) VALUES (
                     %s, %s) 
-                    ON CONFLICT (user_id, term_code) DO NOTHING
+                    ON CONFLICT (user_id, term_code) DO UPDATE SET term_code = EXCLUDED.term_code 
                     RETURNING term_id
                     """,
                     (user_id, term_code))
                 row = await cur.fetchone()
                 if row is None:
-                    return "wait how could this even happen"
+                    return "Error while fetching."
                 term_id = row[0]
             
                 for course in courses:
