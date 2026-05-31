@@ -16,6 +16,7 @@ export function Dashboard(){
   const [totalCredits, setTotalCredits] = useState(0);
   const [termsCount, setTermsCount] = useState(0);
   const [lastUpdated, setLastUpdated] = useState('');
+  const [loading, setLoading] = useState(false);
 
   const navigate = useNavigate();
 
@@ -42,6 +43,7 @@ export function Dashboard(){
   }
 
   async function handleRefresh(){
+    setLoading(true);
     const _ = await fetch(`${import.meta.env.VITE_API_URL}/grades/check`, {
       method: "POST",
       headers: {
@@ -59,6 +61,7 @@ export function Dashboard(){
     const data = await response.json();
     setGrades(data.grades);
     setLastUpdated(data.last_updated);
+    setLoading(false);
   }
 
   function redirectToProfile(){
@@ -81,6 +84,10 @@ export function Dashboard(){
         }
       });
       const data = await response.json();
+      if (response.status === 401) {
+        logOut();
+        return;
+      }
       setGrades(data.grades);
       setLastUpdated(data.last_updated);
     }
@@ -95,7 +102,7 @@ export function Dashboard(){
     <div className="dashboard-component">
       <div className="header">
         <h1 className="title">Cu Scraper</h1>
-        <button className="refresh-btn" onClick={handleRefresh}>Refresh Grades</button>
+        <button className="refresh-btn" disabled={loading} onClick={handleRefresh}>{loading ? 'Refreshing...' : 'Refresh Grades'}</button>
         <button className="profile-btn" onClick={redirectToProfile}></button>
         <button className="logout-btn" onClick={logOut}></button>
       </div>

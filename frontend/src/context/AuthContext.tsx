@@ -7,7 +7,7 @@ interface AuthContextType {
 export const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({children}: {children: ReactNode}) {
-  const [token, setToken] = useState('');
+  const [token, setToken] = useState(localStorage.getItem('token') ?? '');
   
   return(
   <AuthContext value={{token, setToken}}>
