@@ -139,6 +139,8 @@ async def get_grades(user_id: str, term_code=None):
 
             await cur.execute("SELECT last_updated FROM users WHERE user_id = %s", (user_id,))
             row = await cur.fetchone()
+            if row is None:
+                raise Exception("Last updated update failed!")
             last_updated = row[0].isoformat()
 
             return grades, last_updated
@@ -147,6 +149,8 @@ async def check_changes(user_id: str, fresh_courses: dict):
     db_grades, _ = await get_grades(user_id)
     changes = {} 
     for term in db_grades:
+        if term not in fresh_courses:
+            continue
         if db_grades[term] == fresh_courses[term]:
             continue
         else:
@@ -171,6 +175,10 @@ async def check_changes(user_id: str, fresh_courses: dict):
                         found = True
                 if not found:
                     await delete_course(user_id, term, course["crn"]) 
+    for term in fresh_courses:
+        if term not in db_grades:
+            changes[term] = fresh_courses[term]
+
     return changes
 
 async def update_grades(user_id: str, courses: dict):
