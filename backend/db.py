@@ -80,7 +80,7 @@ async def fetch_and_store_grades(user_id: str, result_info):
 
             await cur.execute("UPDATE users SET last_updated = NOW() WHERE user_id = %s", (user_id,))
 
-            await conn.commit()
+        await conn.commit()
 
 async def get_user_credentials(user_id: str):
     async with await psycopg.AsyncConnection.connect(db) as conn:
@@ -158,7 +158,7 @@ async def check_changes(user_id: str, fresh_courses: dict):
                         if course["finalgrade"] != fresh_course["finalgrade"]:
                             if term not in changes:
                                 changes[term] = []
-                            changes[term].append(course)
+                            changes[term].append(fresh_course)
                 if not found:
                     if term not in changes:
                         changes[term] = []
@@ -178,6 +178,15 @@ async def update_grades(user_id: str, courses: dict):
         async with conn.cursor() as cur:
 
             for term in courses: 
+                await cur.execute("""
+                    INSERT INTO terms (user_id, term_code)
+                    VALUES (%s, %s)
+                    ON CONFLICT (user_id, term_code) DO UPDATE SET term_code = EXCLUDED.term_code
+                    RETURNING term_id
+                    """, (user_id, term))
+                row = await cur.fetchone()
+                term_id = row[0]
+
                 for course in courses[term]:
                     enc_grade = fernet.encrypt(course["finalgrade"].encode()).decode()
                     enc_attempted = fernet.encrypt(course["attempted"].encode()).decode()
@@ -185,12 +194,17 @@ async def update_grades(user_id: str, courses: dict):
                     enc_gpahours = fernet.encrypt(course["gpahours"].encode()).decode()
                     enc_qualitypoints = fernet.encrypt(course["qualitypoints"].encode()).decode()
                     await cur.execute("""
-                        UPDATE courses
-                        SET crn = %s, subject = %s, course = %s, section = %s, coursetitle = %s, finalgrade = %s, attempted = %s, earned = %s, gpahours = %s, qualitypoints = %s
-                        WHERE term_id = (SELECT term_id FROM terms WHERE user_id = %s AND term_code = %s)
-                        AND crn = %s
-                    """, (course["crn"], course["subject"], course["course"], course["section"], course["coursetitle"], enc_grade, enc_attempted, enc_earned, enc_gpahours, enc_qualitypoints, user_id, term, course["crn"]))
-        
+                        INSERT INTO courses (
+                        term_id, crn, subject, course, section, coursetitle, finalgrade, attempted, earned, gpahours, qualitypoints)
+                        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                        ON CONFLICT (term_id, crn) DO UPDATE SET
+                        finalgrade = EXCLUDED.finalgrade,
+                        attempted = EXCLUDED.attempted,
+                        earned = EXCLUDED.earned,
+                        gpahours = EXCLUDED.gpahours,
+                        qualitypoints = EXCLUDED.qualitypoints
+                    """, (term_id, course["crn"], course["subject"], course["course"], course["section"], course["coursetitle"], enc_grade, enc_attempted, enc_earned, enc_gpahours, enc_qualitypoints))
+
         await conn.commit()
 
 async def update_last_checked(user_id: str):

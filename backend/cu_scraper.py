@@ -18,11 +18,19 @@ async def login(playwright: Playwright, username: str, password: str):
     await page.get_by_role("textbox", name="Password").fill(password)
     await expect(page.get_by_role("button", name="Sign in")).to_be_visible()
     await page.get_by_role("button", name="Sign in").click()
-
+    
+    try:
+        continue_btn = page.get_by_role("button", name="Continue")
+        await expect(continue_btn).to_be_visible(timeout=3000)
+        await continue_btn.click()
+        await page.wait_for_load_state("networkidle")
+    except:
+        pass
     try:
         await expect(page.get_by_role("link", name="Display grades")).to_be_visible()
         cookies = await context.cookies()
-    except:
+    except Exception as e:
+        print(f"Login failed: {e}")
         await browser.close()
         return None
     await browser.close()

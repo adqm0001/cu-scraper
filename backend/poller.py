@@ -22,7 +22,6 @@ You will now be notified whenever one of your grades update on the Carleton Cent
     msg['Subject'] = subject
     msg['From'] = sender
     msg['To'] = email
-
     with smtplib.SMTP_SSL('smtp.gmail.com', 465) as smtp_server:
         smtp_server.login(sender, password)
         smtp_server.sendmail(sender, email, msg.as_string())
