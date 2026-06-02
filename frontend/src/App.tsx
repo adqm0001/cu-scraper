@@ -12,8 +12,8 @@ export function Profile() { return <div>Profile</div> }
 function App() {
   return (
     <>
-    <AuthProvider>
-      <BrowserRouter>
+    <BrowserRouter>
+      <AuthProvider>
         <Routes>
           <Route index element={<Navigate to="/login" />} />
           <Route element={<AuthLayout />}>
@@ -25,8 +25,8 @@ function App() {
               <Route path="profile" element={<Profile />} />
           </Route>
         </Routes>
-      </BrowserRouter>
-    </AuthProvider>
+      </AuthProvider>
+    </BrowserRouter>
     </>
   )
 }

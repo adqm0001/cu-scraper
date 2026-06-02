@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router';
 import { type Course } from '../utils/Course.ts';
 import { TermCard } from '../components/TermCard.tsx';
@@ -17,8 +17,16 @@ export function Dashboard(){
   const [termsCount, setTermsCount] = useState(0);
   const [lastUpdated, setLastUpdated] = useState('');
   const [loading, setLoading] = useState(false);
+  const [notification, setNotification] = useState('');
+  const notificationTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const navigate = useNavigate();
+
+  function showNotification(msg: string) {
+    if (notificationTimeout.current) clearTimeout(notificationTimeout.current);
+    setNotification(msg);
+    notificationTimeout.current = setTimeout(() => setNotification(''), 3000);
+  }
 
   function info(){
     if (!grades) return;
@@ -62,6 +70,7 @@ export function Dashboard(){
     setGrades(data.grades);
     setLastUpdated(data.last_updated);
     setLoading(false);
+    showNotification('Grade refreshed');
   }
 
   function redirectToProfile(){
@@ -106,6 +115,7 @@ export function Dashboard(){
         <button className="profile-btn" onClick={redirectToProfile}></button>
         <button className="logout-btn" onClick={logOut}></button>
       </div>
+      {notification && <p className="notification">{notification}</p>}
       <div className="info-component">
         <label className="cumulativegpa-label">Cumulative GPA</label>
         <label className="totalcredits-label">Total Credits</label>

@@ -1,0 +1,152 @@
+.login-page {
+  display: flex;
+  width: 100%;
+  min-height: 100vh;
+}
+
+.login-left {
+  flex: 1;
+  background: linear-gradient(135deg, #0a0a0a 0%, #2a0a0a 100%);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 60px;
+}
+
+.login-left h2 {
+  font-size: 2rem;
+  letter-spacing: 3px;
+  margin-bottom: 16px;
+}
+
+.login-left h2 {
+  color: #cc2a2a;
+  background: linear-gradient(90deg, #ff0000 0%, #ffffff 40%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.login-left p {
+  color: #888;
+  line-height: 1.6;
+  max-width: 400px;
+}
+
+.login-right {
+  flex: 1;
+  background: #111;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.login-component {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+}
+
+.login-left, .login-right {
+  flex: 0 0 50%;
+}
+
+.login-component h1 {
+  font-size: 2rem;
+  letter-spacing: 4px;
+  margin-bottom: 32px;
+}
+
+.username-section, .password-section {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: 300px;
+  margin-bottom: 16px;
+}
+
+.input-wrapper {
+  display: flex;
+  flex-direction: row;
+  gap: 6px;
+}
+
+.username-section input, .input-wrapper input {
+  background: #111;
+  border: 1px solid #333;
+  border-radius: 5px;
+  color: white;
+  padding: 8px 12px;
+  outline: none;
+}
+
+.input-wrapper input {
+  width: 100%;
+}
+
+.input-wrapper button {
+  background: #111;
+  color: white;
+  padding: 0 10px;
+  border-radius: 5px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.signinbutton {
+  width: 300px;
+  padding: 10px;
+  background: white;
+  color: black;
+  border: none;
+  border-radius: 5px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  margin-bottom: 8px;
+}
+
+.registerpage {
+  width: 300px;
+  padding: 10px;
+  background: transparent;
+  color: white;
+  border: 1px solid #333;
+  border-radius: 5px;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+.signinbutton:hover {
+  background: #e0e0e0;
+  cursor: pointer;
+}
+
+.registerpage:hover {
+  border-color: #555;
+  cursor: pointer;
+}
+
+@media (max-width: 768px) {
+  .login-page {
+    flex-direction: column;
+  }
+
+  .login-left, .login-right {
+    flex: 1 1 50%;
+    width: 100%;
+  }
+}
+
+@media (max-width: 400px) {
+  .login-component {
+    width: 100%;
+    padding: 20px;
+  }
+  
+  .username-section, .password-section, .signinbutton, .registerpage {
+    width: 100%;
+  }
+}
+
