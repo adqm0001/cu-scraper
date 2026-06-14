@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router';
 import { useAuthContext } from '../context/AuthContext.tsx';
+import { isTimeout, QUICK_TIMEOUT, SCRAPE_TIMEOUT } from '../utils/errors.ts';
 import './Profile.css';
 
 export function Profile() {
@@ -33,14 +34,19 @@ export function Profile() {
 
   useEffect(() => {
     async function fetchMe() {
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/users/me`, {
-        method: 'GET',
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      if (response.status === 401) { logOut(); return; }
-      const data = await response.json();
-      setUsername(data.username);
-      setEmail(data.email);
+      try {
+        const response = await fetch(`${import.meta.env.VITE_API_URL}/users/me`, {
+          method: 'GET',
+          headers: { Authorization: `Bearer ${token}` },
+          signal: AbortSignal.timeout(QUICK_TIMEOUT),
+        });
+        if (response.status === 401) { logOut(); return; }
+        const data = await response.json();
+        setUsername(data.username);
+        setEmail(data.email);
+      } catch (err) {
+        showNotification(isTimeout(err) ? 'Loading your profile timed out. Please refresh.' : 'Failed to load your profile. Please refresh.');
+      }
     }
     fetchMe();
     return () => { if (notificationTimeout.current) clearTimeout(notificationTimeout.current); };
@@ -49,19 +55,25 @@ export function Profile() {
   async function handleSaveEmail() {
     if (!newEmail) return;
     setSavingEmail(true);
-    const response = await fetch(`${import.meta.env.VITE_API_URL}/users/me/email`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-      body: JSON.stringify({ email: newEmail }),
-    });
-    setSavingEmail(false);
-    if (response.ok) {
-      setEmail(newEmail);
-      setNewEmail('');
-      setEditingEmail(false);
-      showNotification('Email updated');
-    } else {
-      showNotification('Failed to update email. Please try again.');
+    try {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/users/me/email`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ email: newEmail }),
+        signal: AbortSignal.timeout(QUICK_TIMEOUT),
+      });
+      if (response.ok) {
+        setEmail(newEmail);
+        setNewEmail('');
+        setEditingEmail(false);
+        showNotification('Email updated');
+      } else {
+        showNotification('Failed to update email. Please try again.');
+      }
+    } catch (err) {
+      showNotification(isTimeout(err) ? 'The request timed out. Please try again.' : 'Network error. Please try again.');
+    } finally {
+      setSavingEmail(false);
     }
   }
 
@@ -78,6 +90,7 @@ export function Profile() {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify({ password: newPassword }),
+        signal: AbortSignal.timeout(SCRAPE_TIMEOUT),
       });
       if (response.ok) {
         setNewPassword('');
@@ -88,8 +101,8 @@ export function Profile() {
       } else {
         showNotification('Failed to update password. Please try again.');
       }
-    } catch {
-      showNotification('Network error. Please try again.');
+    } catch (err) {
+      showNotification(isTimeout(err) ? 'Verifying with Carleton timed out. Please try again.' : 'Network error. Please try again.');
     } finally {
       setSavingPassword(false);
     }
@@ -106,6 +119,7 @@ export function Profile() {
       const response = await fetch(`${import.meta.env.VITE_API_URL}/users/me`, {
         method: 'DELETE',
         headers: { Authorization: `Bearer ${token}` },
+        signal: AbortSignal.timeout(QUICK_TIMEOUT),
       });
       if (response.ok) {
         logOut();
@@ -113,9 +127,9 @@ export function Profile() {
         setShowConfirm(false);
         showNotification('Failed to delete account. Please try again.');
       }
-    } catch {
+    } catch (err) {
       setShowConfirm(false);
-      showNotification('Network error. Please try again.');
+      showNotification(isTimeout(err) ? 'The request timed out. Please try again.' : 'Network error. Please try again.');
     } finally {
       setDeleting(false);
     }

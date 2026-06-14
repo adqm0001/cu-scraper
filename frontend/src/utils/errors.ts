@@ -1,3 +1,10 @@
+export const QUICK_TIMEOUT = 15000;
+export const SCRAPE_TIMEOUT = 90000;
+
+export function isTimeout(err: unknown): boolean {
+  return err instanceof DOMException && err.name === 'TimeoutError';
+}
+
 export function getAuthErrorMessage(
   status: number,
   detail: string | undefined,

@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react'
 import { useNavigate } from 'react-router';
 import {useAuthContext} from '../context/AuthContext.tsx'
-import { getAuthErrorMessage } from '../utils/errors.ts'
+import { getAuthErrorMessage, isTimeout, SCRAPE_TIMEOUT } from '../utils/errors.ts'
 import { Eye, EyeOff } from 'lucide-react';
 import './Register.css'
 
@@ -53,6 +53,7 @@ export function Register(){
           "Content-Type": "application/json",
         },
         body: JSON.stringify({username, password, email}),
+        signal: AbortSignal.timeout(SCRAPE_TIMEOUT),
       });
       const data = await response.json().catch(() => ({}));
       if (!mounted.current) return;
@@ -63,8 +64,8 @@ export function Register(){
         setToken(data.accessToken);
         navigate("/app/dashboard");
       }
-    } catch {
-      if (mounted.current) displayErrorMsg('Network error. Please check your connection and try again.');
+    } catch (err) {
+      if (mounted.current) displayErrorMsg(isTimeout(err) ? 'Registration is taking too long. Please try again.' : 'Network error. Please check your connection and try again.');
     } finally {
       if (mounted.current) setLoading(false);
     }

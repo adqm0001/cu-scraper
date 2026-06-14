@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router';
 import {useAuthContext} from '../context/AuthContext.tsx'
-import { getAuthErrorMessage } from '../utils/errors.ts'
+import { getAuthErrorMessage, isTimeout, QUICK_TIMEOUT } from '../utils/errors.ts'
 import { Eye, EyeOff } from 'lucide-react';
 import './Login.css'
 
@@ -51,6 +51,7 @@ export function Login(){
           "Content-Type": "application/json",
         },
         body: JSON.stringify({username, password}),
+        signal: AbortSignal.timeout(QUICK_TIMEOUT),
       });
       const data = await response.json().catch(() => ({}));
       if (!mounted.current) return;
@@ -61,8 +62,8 @@ export function Login(){
         setToken(data.accessToken);
         navigate("/app/dashboard");
       }
-    } catch {
-      if (mounted.current) displayErrorMsg('Network error. Please check your connection and try again.');
+    } catch (err) {
+      if (mounted.current) displayErrorMsg(isTimeout(err) ? 'The request timed out. Please try again.' : 'Network error. Please check your connection and try again.');
     } finally {
       if (mounted.current) setLoading(false);
     }

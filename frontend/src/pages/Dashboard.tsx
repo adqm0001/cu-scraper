@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router';
 import { type Course } from '../utils/Course.ts';
 import { TermCard } from '../components/TermCard.tsx';
 import { useAuthContext } from '../context/AuthContext.tsx'
+import { isTimeout, QUICK_TIMEOUT, SCRAPE_TIMEOUT } from '../utils/errors.ts'
 import './Dashboard.css'
 
 interface GradesData {
@@ -60,10 +61,12 @@ export function Dashboard(){
       await fetch(`${import.meta.env.VITE_API_URL}/grades/check`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        signal: AbortSignal.timeout(SCRAPE_TIMEOUT),
       });
       const response = await fetch(`${import.meta.env.VITE_API_URL}/grades`, {
         method: 'GET',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        signal: AbortSignal.timeout(QUICK_TIMEOUT),
       });
       if (response.status === 401) { logOut(); return; }
       const data = await response.json();
@@ -71,8 +74,8 @@ export function Dashboard(){
       setLastUpdated(data.last_updated);
       computeInfo(data.grades);
       showNotification('Grades refreshed');
-    } catch {
-      showNotification('Failed to refresh grades. Please try again.');
+    } catch (err) {
+      showNotification(isTimeout(err) ? 'Refresh is taking too long. Please try again.' : 'Failed to refresh grades. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -84,14 +87,15 @@ export function Dashboard(){
         const response = await fetch(`${import.meta.env.VITE_API_URL}/grades`, {
           method: 'GET',
           headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+          signal: AbortSignal.timeout(QUICK_TIMEOUT),
         });
         if (response.status === 401) { logOut(); return; }
         const data = await response.json();
         setGrades(data.grades);
         setLastUpdated(data.last_updated);
         computeInfo(data.grades);
-      } catch {
-        showNotification('Failed to load grades. Please refresh.');
+      } catch (err) {
+        showNotification(isTimeout(err) ? 'Loading grades timed out. Please refresh.' : 'Failed to load grades. Please refresh.');
       }
     }
     fetchGrades();
