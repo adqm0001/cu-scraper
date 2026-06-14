@@ -8,6 +8,9 @@ export function Profile() {
   const navigate = useNavigate();
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
+  const [newEmail, setNewEmail] = useState('');
+  const [editingEmail, setEditingEmail] = useState(false);
+  const [savingEmail, setSavingEmail] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [notification, setNotification] = useState('');
@@ -38,6 +41,30 @@ export function Profile() {
     }
     fetchMe();
   }, []);
+
+  async function handleSaveEmail() {
+    if (!newEmail) return;
+    setSavingEmail(true);
+    const response = await fetch(`${import.meta.env.VITE_API_URL}/users/me/email`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+      body: JSON.stringify({ email: newEmail }),
+    });
+    setSavingEmail(false);
+    if (response.ok) {
+      setEmail(newEmail);
+      setNewEmail('');
+      setEditingEmail(false);
+      showNotification('Email updated');
+    } else {
+      showNotification('Failed to update email. Please try again.');
+    }
+  }
+
+  function handleCancelEmail() {
+    setNewEmail('');
+    setEditingEmail(false);
+  }
 
   async function handleDeleteAccount() {
     setDeleting(true);
@@ -82,9 +109,33 @@ export function Profile() {
               <span className="profile-field-label">Username</span>
               <span className="profile-field-value">{username || '—'}</span>
             </div>
+
             <div className="profile-field">
-              <span className="profile-field-label">Email</span>
-              <span className="profile-field-value">{email || '—'}</span>
+              <span className="profile-field-label">Notification Email</span>
+              {editingEmail ? (
+                <div className="email-edit-row">
+                  <input
+                    className="profile-field-input"
+                    type="email"
+                    value={newEmail}
+                    placeholder={email}
+                    onChange={e => setNewEmail(e.target.value)}
+                    onKeyDown={e => { if (e.key === 'Enter') handleSaveEmail(); if (e.key === 'Escape') handleCancelEmail(); }}
+                    autoFocus
+                  />
+                  <button className="btn-save" disabled={savingEmail || !newEmail} onClick={handleSaveEmail}>
+                    {savingEmail ? 'Saving...' : 'Save'}
+                  </button>
+                  <button className="btn-cancel-inline" disabled={savingEmail} onClick={handleCancelEmail}>
+                    Cancel
+                  </button>
+                </div>
+              ) : (
+                <div className="email-display-row">
+                  <span className="profile-field-value">{email || '—'}</span>
+                  <button className="btn-edit" onClick={() => setEditingEmail(true)}>Change</button>
+                </div>
+              )}
             </div>
           </div>
         </div>

@@ -2,9 +2,9 @@ from dotenv import load_dotenv
 from datetime import datetime, timedelta
 from cu_scraper import info
 from db import register as db_register, fetch_and_store_grades, get_user, get_grades as db_get_grades, delete_user as db_delete_user, check_changes, update_grades
-from db import get_user_credentials
+from db import get_user_credentials, update_email as db_update_email
 import os
-from poller import send_welcome_email, send_goodbye_email, send_grade_change_email
+from poller import send_welcome_email, send_goodbye_email, send_grade_change_email, send_email_changed_old, send_email_changed_new
 from fastapi import BackgroundTasks, FastAPI, HTTPException, Depends, Request
 from jose import jwt
 from pydantic import BaseModel, Field
@@ -37,6 +37,9 @@ app.add_middleware(
 class RegisterRequest(BaseModel):
     username: str = Field(max_length=50)
     password: str = Field(max_length=70)
+    email: str = Field(max_length=70)
+
+class UpdateEmailRequest(BaseModel):
     email: str = Field(max_length=70)
 
 class LoginRequest(BaseModel):
@@ -141,6 +144,27 @@ async def get_me(credentials: Annotated[HTTPAuthorizationCredentials, Depends(se
         raise HTTPException(status_code=404, detail="user not found")
 
     return {"username": user["username"], "email": user["email"]}
+
+@app.patch("/users/me/email")
+@limiter.limit("5/minute")
+async def update_email(request: Request, req: UpdateEmailRequest, background_tasks: BackgroundTasks, credentials: Annotated[HTTPAuthorizationCredentials, Depends(security)]):
+    token = credentials.credentials
+    try:
+        payload = jwt.decode(token, JWT_SECRET, algorithms=["HS256"])
+    except Exception:
+        raise HTTPException(status_code=401, detail="Unauthorized access")
+    user_id = payload["sub"]
+
+    user = await get_user_credentials(user_id)
+    if user == "user_id not found":
+        raise HTTPException(status_code=404, detail="user not found")
+
+    old_email = user["email"]
+    username = user["username"]
+    await db_update_email(user_id, req.email)
+    background_tasks.add_task(send_email_changed_old, old_email, username)
+    background_tasks.add_task(send_email_changed_new, req.email, username)
+    return {"success": True}
 
 @app.delete("/users/me")
 async def delete_user(background_tasks: BackgroundTasks, credentials: Annotated[HTTPAuthorizationCredentials, Depends(security)]):

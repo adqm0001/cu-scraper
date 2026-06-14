@@ -53,6 +53,48 @@ def send_grade_change_email(email, changes):
         smtp_server.sendmail(sender, email, msg.as_string())
     print("Grades update email sent!")
 
+def send_email_changed_old(old_email, username):
+    subject = "CU Scraper - Notification Email Changed"
+    body = f"""Dear {username},
+
+Your grade notification email has been updated. You will no longer receive grade updates at this address.
+
+If you did not make this change, please contact us immediately."""
+
+    sender = os.getenv("GOOGLE_EMAIL")
+    password = os.getenv("GOOGLE_PASSWORD")
+    assert sender and password, "email credentials not found in .env"
+
+    msg = MIMEText(body)
+    msg['Subject'] = subject
+    msg['From'] = sender
+    msg['To'] = old_email
+    with smtplib.SMTP_SSL('smtp.gmail.com', 465) as smtp_server:
+        smtp_server.login(sender, password)
+        smtp_server.sendmail(sender, old_email, msg.as_string())
+    print("Email changed notification sent to old email!")
+
+def send_email_changed_new(new_email, username):
+    subject = "CU Scraper - You're now subscribed"
+    body = f"""Dear {username},
+
+This email has been set as the new destination for your CU Scraper grade notifications.
+
+You will now receive an email at this address whenever one of your grades updates on the Carleton Central Website."""
+
+    sender = os.getenv("GOOGLE_EMAIL")
+    password = os.getenv("GOOGLE_PASSWORD")
+    assert sender and password, "email credentials not found in .env"
+
+    msg = MIMEText(body)
+    msg['Subject'] = subject
+    msg['From'] = sender
+    msg['To'] = new_email
+    with smtplib.SMTP_SSL('smtp.gmail.com', 465) as smtp_server:
+        smtp_server.login(sender, password)
+        smtp_server.sendmail(sender, new_email, msg.as_string())
+    print("Subscription email sent to new email!")
+
 def send_goodbye_email(email, username):
     subject = "CU Scraper - Account Deleted"
     body = f"""Dear {username},

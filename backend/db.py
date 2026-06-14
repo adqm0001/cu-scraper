@@ -215,6 +215,13 @@ async def update_grades(user_id: str, courses: dict):
 
         await conn.commit()
 
+async def update_email(user_id: str, new_email: str):
+    enc_email = fernet.encrypt(new_email.encode()).decode()
+    async with await psycopg.AsyncConnection.connect(db) as conn:
+        async with conn.cursor() as cur:
+            await cur.execute("UPDATE users SET email = %s WHERE user_id = %s", (enc_email, user_id))
+            await conn.commit()
+
 async def update_last_checked(user_id: str):
     async with await psycopg.AsyncConnection.connect(db) as conn:
         async with conn.cursor() as cur:

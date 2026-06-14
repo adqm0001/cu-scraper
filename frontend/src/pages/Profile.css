@@ -101,6 +101,100 @@
   font-family: 'Manrope', sans-serif;
 }
 
+/* ── Email edit ── */
+.email-display-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.email-edit-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.profile-field-input {
+  flex: 1;
+  background: #0d0d0d;
+  border: 1px solid #333;
+  border-radius: 6px;
+  color: white;
+  padding: 10px 14px;
+  font-size: 0.9rem;
+  font-family: 'Manrope', sans-serif;
+  outline: none;
+  transition: border-color 0.15s;
+}
+
+.profile-field-input::placeholder {
+  color: #444;
+}
+
+.profile-field-input:focus {
+  border-color: #555;
+}
+
+.btn-edit {
+  padding: 6px 14px;
+  background: transparent;
+  color: #888;
+  border: 1px solid #2a2a2a;
+  border-radius: 5px;
+  font-size: 0.78rem;
+  font-family: 'Manrope', sans-serif;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: color 0.15s, border-color 0.15s;
+}
+
+.btn-edit:hover {
+  color: white;
+  border-color: #444;
+}
+
+.btn-save {
+  padding: 8px 16px;
+  background: white;
+  color: black;
+  border: none;
+  border-radius: 5px;
+  font-size: 0.85rem;
+  font-family: 'Manrope', sans-serif;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.15s;
+}
+
+.btn-save:hover:not(:disabled) {
+  background: #e0e0e0;
+}
+
+.btn-save:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.btn-cancel-inline {
+  padding: 8px 16px;
+  background: transparent;
+  color: white;
+  border: 1px solid #333;
+  border-radius: 5px;
+  font-size: 0.85rem;
+  font-family: 'Manrope', sans-serif;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: border-color 0.15s;
+}
+
+.btn-cancel-inline:hover {
+  border-color: #555;
+}
+
 /* ── Danger zone ── */
 .danger-card {
   border-color: rgba(255, 50, 50, 0.15);
