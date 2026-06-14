@@ -4,8 +4,6 @@
   display: flex;
   flex-direction: column;
 }
-
-/* ── Navbar (shared style with Dashboard) ── */
 .profile-nav {
   display: flex;
   align-items: center;
@@ -29,8 +27,6 @@
   text-decoration: none;
   cursor: pointer;
 }
-
-/* ── Content ── */
 .profile-content {
   flex: 1;
   padding: 40px 48px;
@@ -48,8 +44,6 @@
   letter-spacing: 1px;
   color: white;
 }
-
-/* ── Cards ── */
 .profile-card {
   background: #111;
   border: 1px solid #1e1e1e;
@@ -76,8 +70,6 @@
   flex-direction: column;
   gap: 16px;
 }
-
-/* ── Fields ── */
 .profile-field {
   display: flex;
   flex-direction: column;
@@ -107,8 +99,6 @@
   line-height: 1.5;
   margin-top: 2px;
 }
-
-/* ── Email edit ── */
 .email-display-row {
   display: flex;
   align-items: center;
@@ -201,8 +191,6 @@
 .btn-cancel-inline:hover {
   border-color: #555;
 }
-
-/* ── Danger zone ── */
 .danger-card {
   border-color: rgba(255, 50, 50, 0.15);
 }
@@ -239,8 +227,6 @@
   background: rgba(255, 50, 50, 0.08);
   border-color: rgba(255, 50, 50, 0.6);
 }
-
-/* ── Confirm overlay ── */
 .confirm-overlay {
   position: fixed;
   inset: 0;
@@ -320,8 +306,6 @@
   opacity: 0.5;
   cursor: not-allowed;
 }
-
-/* ── Notification toast ── */
 .notification-toast {
   position: fixed;
   bottom: 32px;
@@ -340,8 +324,6 @@
   from { opacity: 0; transform: translateY(8px); }
   to   { opacity: 1; transform: translateY(0); }
 }
-
-/* ── Responsive ── */
 @media (max-width: 768px) {
   .profile-nav {
     padding: 16px 24px;

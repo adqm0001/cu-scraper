@@ -1,13 +1,6 @@
 import { defineConfig, loadEnv, type Plugin } from 'vite'
 import react from '@vitejs/plugin-react'
 
-/*
-  Injects a Content-Security-Policy meta tag into index.html for production
-  builds only. Left out of dev because Vite's own hot-reload (HMR) relies on
-  inline scripts and an internal websocket that a strict CSP would block. CSP
-  limits where scripts can load from and, crucially, where the page is allowed
-  to send data (connect-src) — shrinking the blast radius of any future XSS.
-*/
 function cspPlugin(apiUrl: string): Plugin {
   const policy = [
     "default-src 'self'",

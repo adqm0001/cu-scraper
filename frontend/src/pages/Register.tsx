@@ -19,6 +19,7 @@ export function Register(){
   const navigate = useNavigate();
 
   useEffect(() => {
+    mounted.current = true;
     return () => {
       mounted.current = false;
       if (errorTimeout.current) clearTimeout(errorTimeout.current);

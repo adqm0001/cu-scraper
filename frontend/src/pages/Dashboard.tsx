@@ -124,7 +124,6 @@ export function Dashboard(){
 
   return (
     <div className="dashboard-page">
-      {/* Navbar */}
       <nav className="dashboard-nav">
         <span className="nav-logo">CU SCRAPER</span>
         <div className="nav-actions">
@@ -136,9 +135,7 @@ export function Dashboard(){
         </div>
       </nav>
 
-      {/* Content */}
       <main className="dashboard-content">
-        {/* Stats */}
         <div className="stats-row">
           <div className="stat-card">
             <span className="stat-label">Cumulative GPA</span>
@@ -162,7 +159,6 @@ export function Dashboard(){
           </div>
         </div>
 
-        {/* Search */}
         <div className="search-row">
           <input
             className="search-input"
@@ -182,7 +178,6 @@ export function Dashboard(){
           </div>
         </div>
 
-        {/* Terms */}
         <div className="terms-list">
           {grades === null ? (
             <p className="empty-state">Loading grades...</p>

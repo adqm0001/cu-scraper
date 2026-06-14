@@ -4,8 +4,6 @@
   display: flex;
   flex-direction: column;
 }
-
-/* ── Navbar ── */
 .dashboard-nav {
   display: flex;
   align-items: center;
@@ -72,8 +70,6 @@
 .btn-outline:hover {
   border-color: #555;
 }
-
-/* ── Notification toast ── */
 .notification-toast {
   position: fixed;
   bottom: 32px;
@@ -92,8 +88,6 @@
   from { opacity: 0; transform: translateY(8px); }
   to   { opacity: 1; transform: translateY(0); }
 }
-
-/* ── Main content ── */
 .dashboard-content {
   flex: 1;
   padding: 40px 48px;
@@ -104,8 +98,6 @@
   width: 100%;
   margin: 0 auto;
 }
-
-/* ── Stats row ── */
 .stats-row {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -147,8 +139,6 @@
   background-clip: text;
   -webkit-text-fill-color: transparent;
 }
-
-/* ── Search ── */
 .search-row {
   display: flex;
   gap: 10px;
@@ -209,23 +199,17 @@
 .toggle-btn:hover:not(.active) {
   color: #aaa;
 }
-
-/* ── Terms list ── */
 .terms-list {
   display: flex;
   flex-direction: column;
   gap: 20px;
 }
-
-/* ── Empty / loading state ── */
 .empty-state {
   text-align: center;
   color: #444;
   font-size: 0.9rem;
   padding: 60px 0;
 }
-
-/* ── Responsive ── */
 @media (max-width: 900px) {
   .dashboard-nav {
     padding: 16px 24px;

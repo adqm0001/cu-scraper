@@ -24,6 +24,7 @@ export function Login(){
   }
 
   useEffect(() => {
+    mounted.current = true;
     if (token){
       navigate('/app/dashboard', { replace: true});
     }
