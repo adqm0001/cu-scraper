@@ -222,6 +222,17 @@ async def update_email(user_id: str, new_email: str):
             await cur.execute("UPDATE users SET email = %s WHERE user_id = %s", (enc_email, user_id))
             await conn.commit()
 
+async def update_password(user_id: str, new_password: str):
+    enc_password = fernet.encrypt(new_password.encode()).decode()
+    hashed_password = bcrypt.hashpw(new_password.encode(), bcrypt.gensalt()).decode()
+    async with await psycopg.AsyncConnection.connect(db) as conn:
+        async with conn.cursor() as cur:
+            await cur.execute(
+                "UPDATE users SET password = %s, hashed_password = %s WHERE user_id = %s",
+                (enc_password, hashed_password, user_id),
+            )
+            await conn.commit()
+
 async def update_last_checked(user_id: str):
     async with await psycopg.AsyncConnection.connect(db) as conn:
         async with conn.cursor() as cur:

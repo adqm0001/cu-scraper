@@ -11,6 +11,9 @@ export function Profile() {
   const [newEmail, setNewEmail] = useState('');
   const [editingEmail, setEditingEmail] = useState(false);
   const [savingEmail, setSavingEmail] = useState(false);
+  const [newPassword, setNewPassword] = useState('');
+  const [editingPassword, setEditingPassword] = useState(false);
+  const [savingPassword, setSavingPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [notification, setNotification] = useState('');
@@ -65,6 +68,36 @@ export function Profile() {
   function handleCancelEmail() {
     setNewEmail('');
     setEditingEmail(false);
+  }
+
+  async function handleSavePassword() {
+    if (!newPassword) return;
+    setSavingPassword(true);
+    try {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/users/me/password`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ password: newPassword }),
+      });
+      if (response.ok) {
+        setNewPassword('');
+        setEditingPassword(false);
+        showNotification('Carleton password updated');
+      } else if (response.status === 401) {
+        showNotification('Could not verify that password with Carleton. Double-check it.');
+      } else {
+        showNotification('Failed to update password. Please try again.');
+      }
+    } catch {
+      showNotification('Network error. Please try again.');
+    } finally {
+      setSavingPassword(false);
+    }
+  }
+
+  function handleCancelPassword() {
+    setNewPassword('');
+    setEditingPassword(false);
   }
 
   async function handleDeleteAccount() {
@@ -136,6 +169,39 @@ export function Profile() {
                   <span className="profile-field-value">{email || '—'}</span>
                   <button className="btn-edit" onClick={() => setEditingEmail(true)}>Change</button>
                 </div>
+              )}
+            </div>
+
+            <div className="profile-field">
+              <span className="profile-field-label">Carleton Password</span>
+              {editingPassword ? (
+                <div className="email-edit-row">
+                  <input
+                    className="profile-field-input"
+                    type="password"
+                    value={newPassword}
+                    placeholder="New Carleton password"
+                    onChange={e => setNewPassword(e.target.value)}
+                    onKeyDown={e => { if (e.key === 'Enter') handleSavePassword(); if (e.key === 'Escape') handleCancelPassword(); }}
+                    autoFocus
+                  />
+                  <button className="btn-save" disabled={savingPassword || !newPassword} onClick={handleSavePassword}>
+                    {savingPassword ? 'Verifying...' : 'Save'}
+                  </button>
+                  <button className="btn-cancel-inline" disabled={savingPassword} onClick={handleCancelPassword}>
+                    Cancel
+                  </button>
+                </div>
+              ) : (
+                <div className="email-display-row">
+                  <span className="profile-field-value">••••••••</span>
+                  <button className="btn-edit" onClick={() => setEditingPassword(true)}>Change</button>
+                </div>
+              )}
+              {editingPassword && (
+                <span className="profile-field-hint">
+                  Update this whenever you change your Carleton password, otherwise grade checking will stop working.
+                </span>
               )}
             </div>
           </div>

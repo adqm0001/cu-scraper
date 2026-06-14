@@ -101,6 +101,13 @@
   font-family: 'Manrope', sans-serif;
 }
 
+.profile-field-hint {
+  font-size: 0.75rem;
+  color: #666;
+  line-height: 1.5;
+  margin-top: 2px;
+}
+
 /* ── Email edit ── */
 .email-display-row {
   display: flex;

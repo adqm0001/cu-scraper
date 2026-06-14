@@ -2,7 +2,7 @@ from dotenv import load_dotenv
 from datetime import datetime, timedelta
 from cu_scraper import info
 from db import register as db_register, fetch_and_store_grades, get_user, get_grades as db_get_grades, delete_user as db_delete_user, check_changes, update_grades
-from db import get_user_credentials, update_email as db_update_email
+from db import get_user_credentials, update_email as db_update_email, update_password as db_update_password
 import os
 from poller import send_welcome_email, send_goodbye_email, send_grade_change_email, send_email_changed_old, send_email_changed_new
 from fastapi import BackgroundTasks, FastAPI, HTTPException, Depends, Request
@@ -41,6 +41,9 @@ class RegisterRequest(BaseModel):
 
 class UpdateEmailRequest(BaseModel):
     email: str = Field(max_length=70)
+
+class UpdatePasswordRequest(BaseModel):
+    password: str = Field(max_length=70)
 
 class LoginRequest(BaseModel):
     username: str = Field(max_length=50)
@@ -164,6 +167,27 @@ async def update_email(request: Request, req: UpdateEmailRequest, background_tas
     await db_update_email(user_id, req.email)
     background_tasks.add_task(send_email_changed_old, old_email, username)
     background_tasks.add_task(send_email_changed_new, req.email, username)
+    return {"success": True}
+
+@app.patch("/users/me/password")
+@limiter.limit("5/minute")
+async def update_password(request: Request, req: UpdatePasswordRequest, credentials: Annotated[HTTPAuthorizationCredentials, Depends(security)]):
+    token = credentials.credentials
+    try:
+        payload = jwt.decode(token, JWT_SECRET, algorithms=["HS256"])
+    except Exception:
+        raise HTTPException(status_code=401, detail="Unauthorized access")
+    user_id = payload["sub"]
+
+    user = await get_user_credentials(user_id)
+    if user == "user_id not found":
+        raise HTTPException(status_code=404, detail="user not found")
+
+    result = await info(user["username"], req.password)
+    if result is None:
+        raise HTTPException(status_code=401, detail="invalid credentials")
+
+    await db_update_password(user_id, req.password)
     return {"success": True}
 
 @app.delete("/users/me")
