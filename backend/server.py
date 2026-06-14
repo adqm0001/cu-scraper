@@ -127,6 +127,21 @@ async def check_grades(request: Request, credentials: Annotated[HTTPAuthorizatio
     
     return fresh_courses
 
+@app.get("/users/me")
+async def get_me(credentials: Annotated[HTTPAuthorizationCredentials, Depends(security)]):
+    token = credentials.credentials
+    try:
+        payload = jwt.decode(token, JWT_SECRET, algorithms=["HS256"])
+    except Exception:
+        raise HTTPException(status_code=401, detail="Unauthorized access")
+    user_id = payload["sub"]
+
+    user = await get_user_credentials(user_id)
+    if user == "user_id not found":
+        raise HTTPException(status_code=404, detail="user not found")
+
+    return {"username": user["username"], "email": user["email"]}
+
 @app.delete("/users/me")
 async def delete_user(background_tasks: BackgroundTasks, credentials: Annotated[HTTPAuthorizationCredentials, Depends(security)]):
     token = credentials.credentials

@@ -1,43 +1,57 @@
 import { type Course } from '../utils/Course.ts';
+import './TermCard.css';
 
 interface TermProps {
   termCode: string;
   courses: Course[];
 }
 
-export function TermCard({termCode, courses}: TermProps){
-  function calculatetermgpa(): number{
-    let totalQP: number = 0;
-    let totalGH: number = 0;
-    courses.forEach((course) => {
-      totalQP += Number(course.qualitypoints);
-      totalGH += Number(course.gpahours);
+export function TermCard({ termCode, courses }: TermProps) {
+  function calcTermGpa(): number | null {
+    let totalQP = 0;
+    let totalGH = 0;
+    courses.forEach(c => {
+      totalQP += Number(c.qualitypoints);
+      totalGH += Number(c.gpahours);
     });
-    return totalQP/totalGH;
+    return totalGH > 0 ? totalQP / totalGH : null;
   }
 
+  const gpa = calcTermGpa();
+
   return (
-    <div className="term-component">
-      <div className="header">
-        <h1 className="term-code">{termCode}</h1>
-        <h2 className="term-gpa">{calculatetermgpa()}</h2>
-      </div>
-      <div className="courses-categories">
-        <label className="course-label">Course</label>
-        <label className="title-label">Title</label>
-        <label className="grade-label">Grade</label>
-        <label className="credits-label">Creditd</label>
-      </div>
-      <div className="courses-table">
-        {courses.map((course) =>
-          <div key={course.crn}>
-          <h2 className="course">{course.subject}</h2>
-          <p className="title">{course.coursetitle}</p>
-          <p className="grade">{course.finalgrade}</p>
-          <p className="attempted">{course.attempted}</p>
-          </div>
+    <div className="term-card">
+      <div className="term-header">
+        <span className="term-name">{termCode}</span>
+        {gpa !== null && (
+          <span className="term-gpa-badge">GPA {gpa.toFixed(2)}</span>
         )}
       </div>
+
+      {courses.length === 0 ? (
+        <p className="no-courses">No courses this term.</p>
+      ) : (
+        <table className="course-table">
+          <thead>
+            <tr>
+              <th>Course</th>
+              <th>Title</th>
+              <th>Grade</th>
+              <th>Credits</th>
+            </tr>
+          </thead>
+          <tbody>
+            {courses.map(course => (
+              <tr key={course.crn}>
+                <td className="td-code">{course.subject} {course.course}</td>
+                <td className="td-title">{course.coursetitle}</td>
+                <td className="td-grade">{course.finalgrade || '—'}</td>
+                <td className="td-credits">{course.attempted}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )}
     </div>
-  ) 
+  );
 }

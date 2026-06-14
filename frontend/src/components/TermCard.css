@@ -1,0 +1,106 @@
+.term-card {
+  background: #111;
+  border: 1px solid #1e1e1e;
+  border-radius: 10px;
+  overflow: hidden;
+  transition: border-color 0.15s;
+}
+
+.term-card:hover {
+  border-color: #2a2a2a;
+}
+
+.term-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 24px;
+  border-bottom: 1px solid #1a1a1a;
+}
+
+.term-name {
+  font-size: 0.85rem;
+  font-weight: 700;
+  letter-spacing: 2px;
+  color: #888;
+  text-transform: uppercase;
+}
+
+.term-gpa-badge {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #ff4444;
+  background: rgba(255, 50, 50, 0.08);
+  border: 1px solid rgba(255, 50, 50, 0.2);
+  border-radius: 20px;
+  padding: 4px 12px;
+  letter-spacing: 0.5px;
+}
+
+/* ── Course table ── */
+.course-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.course-table thead tr {
+  border-bottom: 1px solid #1a1a1a;
+}
+
+.course-table th {
+  text-align: left;
+  padding: 10px 24px;
+  font-size: 0.7rem;
+  letter-spacing: 1.5px;
+  color: #444;
+  text-transform: uppercase;
+  font-weight: 600;
+}
+
+.course-table tbody tr {
+  border-bottom: 1px solid #161616;
+  transition: background 0.1s;
+}
+
+.course-table tbody tr:last-child {
+  border-bottom: none;
+}
+
+.course-table tbody tr:hover {
+  background: #161616;
+}
+
+.course-table td {
+  padding: 12px 24px;
+  font-size: 0.85rem;
+  color: #ccc;
+}
+
+.td-code {
+  font-weight: 700;
+  color: white;
+  white-space: nowrap;
+  width: 120px;
+}
+
+.td-title {
+  color: #aaa;
+}
+
+.td-grade {
+  font-weight: 700;
+  color: white;
+  width: 80px;
+}
+
+.td-credits {
+  color: #666;
+  width: 80px;
+}
+
+.no-courses {
+  padding: 20px 24px;
+  color: #444;
+  font-size: 0.85rem;
+  text-align: center;
+}
