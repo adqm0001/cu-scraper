@@ -11,6 +11,7 @@ interface GradesData {
 
 export function Dashboard(){
   const [searching, setSearching] = useState('');
+  const [searchMode, setSearchMode] = useState<'code' | 'name'>('code');
   const [grades, setGrades] = useState<GradesData | null>(null);
   const { token, setToken } = useAuthContext();
   const [cumulativeGpa, setCumulativeGpa] = useState<number | null>(null);
@@ -108,10 +109,12 @@ export function Dashboard(){
   const filteredEntries = grades
     ? Object.entries(grades).map(([termCode, courses]) => ({
         termCode,
-        courses: courses.filter(c =>
-          c.coursetitle.toLowerCase().includes(searching.toLowerCase()) ||
-          c.subject.toLowerCase().includes(searching.toLowerCase())
-        ),
+        courses: courses.filter(c => {
+          const q = searching.toLowerCase();
+          if (!q) return true;
+          if (searchMode === 'code') return `${c.subject}${c.course}`.toLowerCase().includes(q.replace(/\s+/g, ''));
+          return c.coursetitle.toLowerCase().includes(q);
+        }),
       })).filter(({ courses }) => courses.length > 0 || !searching)
     : [];
 
@@ -156,12 +159,24 @@ export function Dashboard(){
         </div>
 
         {/* Search */}
-        <input
-          className="search-input"
-          placeholder="Search courses..."
-          value={searching}
-          onChange={e => setSearching(e.target.value)}
-        />
+        <div className="search-row">
+          <input
+            className="search-input"
+            placeholder={searchMode === 'code' ? 'e.g. ECOR 1031' : 'e.g. Programming and Data Management'}
+            value={searching}
+            onChange={e => setSearching(e.target.value)}
+          />
+          <div className="search-toggle">
+            <button
+              className={`toggle-btn ${searchMode === 'code' ? 'active' : ''}`}
+              onClick={() => { setSearchMode('code'); setSearching(''); }}
+            >Code</button>
+            <button
+              className={`toggle-btn ${searchMode === 'name' ? 'active' : ''}`}
+              onClick={() => { setSearchMode('name'); setSearching(''); }}
+            >Name</button>
+          </div>
+        </div>
 
         {/* Terms */}
         <div className="terms-list">
