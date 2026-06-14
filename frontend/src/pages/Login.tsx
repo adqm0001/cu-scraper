@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router';
 import {useAuthContext} from '../context/AuthContext.tsx'
+import { getAuthErrorMessage } from '../utils/errors.ts'
 import { Eye, EyeOff } from 'lucide-react';
 import './Login.css'
 
@@ -11,7 +12,8 @@ export function Login(){
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const errorTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
-  
+  const mounted = useRef(true);
+
   const {token, setToken} = useAuthContext();
   const navigate = useNavigate();
 
@@ -25,9 +27,14 @@ export function Login(){
     if (token){
       navigate('/app/dashboard', { replace: true});
     }
+    return () => {
+      mounted.current = false;
+      if (errorTimeout.current) clearTimeout(errorTimeout.current);
+    };
   }, []);
 
   async function handleSignIn(){
+    if (loading) return;
     if (!username){
       displayErrorMsg('Username cannot be empty!')
       return;
@@ -37,30 +44,32 @@ export function Login(){
       return;
     }
     setLoading(true);
-    const response = await fetch(`${import.meta.env.VITE_API_URL}/login`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({username, password}),
-    });
-    const data = await response.json();
-    if (!response.ok){
-      displayErrorMsg(data.detail);
-    } else {
-      localStorage.setItem('token', data.accessToken);
-      setToken(data.accessToken);
-      navigate("/app/dashboard");
+    try {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/login`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({username, password}),
+      });
+      const data = await response.json().catch(() => ({}));
+      if (!mounted.current) return;
+      if (!response.ok){
+        displayErrorMsg(getAuthErrorMessage(response.status, data.detail, 'login'));
+      } else {
+        localStorage.setItem('token', data.accessToken);
+        setToken(data.accessToken);
+        navigate("/app/dashboard");
+      }
+    } catch {
+      if (mounted.current) displayErrorMsg('Network error. Please check your connection and try again.');
+    } finally {
+      if (mounted.current) setLoading(false);
     }
-    setLoading(false);
   }
 
-  function handleMouseDown(){
-    setShowPassword(true); 
-  }
-
-  function handleMouseUp(){
-    setShowPassword(false);
+  function toggleShowPassword(){
+    setShowPassword(prev => !prev);
   }
 
   function redirectRegisterPage(){
@@ -86,7 +95,7 @@ export function Login(){
             <label>Password</label>
             <div className="input-wrapper">
               <input type={showPassword ? "text" : "password"} value={password} onChange={v => setPassword(v.target.value)} onKeyDown={e => e.key === 'Enter' && handleSignIn()}/>
-              <button className="view-password" onMouseDown={handleMouseDown} onMouseUp={handleMouseUp}>{showPassword ? <EyeOff size={16} /> : <Eye size={16} />}</button>
+              <button type="button" className="view-password" onClick={toggleShowPassword}>{showPassword ? <EyeOff size={16} /> : <Eye size={16} />}</button>
             </div>
           </div>
           {errorMessage && <p className="error-msg">{errorMessage}</p>}
