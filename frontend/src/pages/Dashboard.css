@@ -205,8 +205,26 @@
 }
 
 @media (max-width: 480px) {
+  .dashboard-nav {
+    padding: 14px 16px;
+  }
+
+  .dashboard-content {
+    padding: 20px 16px;
+    gap: 20px;
+  }
+
   .stats-row {
     grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+
+  .stat-card {
+    padding: 14px 16px;
+  }
+
+  .stat-value {
+    font-size: 1.4rem;
   }
 
   .nav-actions .btn-outline:not(.btn-logout) {

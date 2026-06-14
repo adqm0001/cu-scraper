@@ -184,6 +184,6 @@ async def delete_user(background_tasks: BackgroundTasks, credentials: Annotated[
 
     await db_delete_user(user_id) 
 
-    return {"sucess": True}
+    return {"success": True}
 
 

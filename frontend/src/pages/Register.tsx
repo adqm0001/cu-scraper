@@ -80,10 +80,10 @@ export function Register(){
       </div>
       <div className="email-section">
         <label>Email</label>
-        <input value={email} onChange={v => setEmail(v.target.value)}/>
+        <input value={email} onChange={v => setEmail(v.target.value)} onKeyDown={e => e.key === 'Enter' && handleSignUp()}/>
       </div>
       <p className="error-msg">{errorMessage}</p>
-      <button className="signupbutton" disabled={loading} onClick={handleSignUp}>{loading ? "Creating account..." : "Sign up"}</button>
+      <button className="signupbutton" disabled={loading} onClick={handleSignUp}>{loading ? "Registering..." : "Sign up"}</button>
       <button className="loginpage" onClick={redirectLoginPage}>Already have an account</button>
     </div>
   )

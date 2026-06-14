@@ -55,24 +55,11 @@ export function Dashboard(){
 
   async function handleRefresh() {
     setLoading(true);
-    await fetch(`${import.meta.env.VITE_API_URL}/grades/check`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-    });
-    const response = await fetch(`${import.meta.env.VITE_API_URL}/grades`, {
-      method: 'GET',
-      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-    });
-    const data = await response.json();
-    setGrades(data.grades);
-    setLastUpdated(data.last_updated);
-    computeInfo(data.grades);
-    setLoading(false);
-    showNotification('Grades refreshed');
-  }
-
-  useEffect(() => {
-    async function fetchGrades() {
+    try {
+      await fetch(`${import.meta.env.VITE_API_URL}/grades/check`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+      });
       const response = await fetch(`${import.meta.env.VITE_API_URL}/grades`, {
         method: 'GET',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
@@ -82,8 +69,32 @@ export function Dashboard(){
       setGrades(data.grades);
       setLastUpdated(data.last_updated);
       computeInfo(data.grades);
+      showNotification('Grades refreshed');
+    } catch {
+      showNotification('Failed to refresh grades. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  useEffect(() => {
+    async function fetchGrades() {
+      try {
+        const response = await fetch(`${import.meta.env.VITE_API_URL}/grades`, {
+          method: 'GET',
+          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        });
+        if (response.status === 401) { logOut(); return; }
+        const data = await response.json();
+        setGrades(data.grades);
+        setLastUpdated(data.last_updated);
+        computeInfo(data.grades);
+      } catch {
+        showNotification('Failed to load grades. Please refresh.');
+      }
     }
     fetchGrades();
+    return () => { if (notificationTimeout.current) clearTimeout(notificationTimeout.current); };
   }, []);
 
   const formatLastUpdated = () => {
@@ -138,7 +149,7 @@ export function Dashboard(){
           </div>
           <div className="stat-card">
             <span className="stat-label">Last Updated</span>
-            <span className="stat-value" style={{ fontSize: '1rem', paddingTop: '4px', color: '#888' }}>
+            <span className="stat-value" style={{ fontSize: '1rem', paddingTop: '4px' }}>
               {formatLastUpdated()}
             </span>
           </div>

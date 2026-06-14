@@ -40,6 +40,7 @@ export function Profile() {
       setEmail(data.email);
     }
     fetchMe();
+    return () => { if (notificationTimeout.current) clearTimeout(notificationTimeout.current); };
   }, []);
 
   async function handleSaveEmail() {
@@ -160,7 +161,7 @@ export function Profile() {
           </div>
           <div className="profile-card-body">
             <p className="danger-description">
-              Permanently delete your account and all associated data, including your stored credentials and grade history. This action cannot be undone.
+              Permanently delete your CU Scraper account and all associated data, including your stored credentials and grade history. This does not affect your real Carleton University account and cannot be undone.
             </p>
             <button className="btn-danger" onClick={() => setShowConfirm(true)}>
               Delete Account
@@ -174,8 +175,8 @@ export function Profile() {
           <div className="confirm-dialog" onClick={e => e.stopPropagation()}>
             <h2>Delete Account</h2>
             <p>
-              This will permanently delete your account, stored Carleton credentials, and all grade data.
-              You will be logged out immediately.
+              This will permanently delete your CU Scraper account, stored Carleton credentials, and all grade data.
+              You will be logged out immediately. This does not affect your real Carleton University account.
             </p>
             <div className="confirm-actions">
               <button className="btn-cancel" disabled={deleting} onClick={() => setShowConfirm(false)}>

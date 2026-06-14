@@ -80,16 +80,17 @@ export function Login(){
           </div>
           <div className="username-section">
             <label>Username</label>
-            <input value={username} onChange={v => setUsername(v.target.value)}/>
+            <input value={username} onChange={v => setUsername(v.target.value)} onKeyDown={e => e.key === 'Enter' && handleSignIn()}/>
           </div>
           <div className="password-section">
             <label>Password</label>
             <div className="input-wrapper">
-              <input type={showPassword ? "text" : "password"} value={password} onChange={v => setPassword(v.target.value)}/>
+              <input type={showPassword ? "text" : "password"} value={password} onChange={v => setPassword(v.target.value)} onKeyDown={e => e.key === 'Enter' && handleSignIn()}/>
               <button className="view-password" onMouseDown={handleMouseDown} onMouseUp={handleMouseUp}>{showPassword ? <EyeOff size={16} /> : <Eye size={16} />}</button>
             </div>
           </div>
-            <button className="signinbutton" disabled={loading} onClick={handleSignIn}>Sign in</button>
+          {errorMessage && <p className="error-msg">{errorMessage}</p>}
+            <button className="signinbutton" disabled={loading} onClick={handleSignIn}>{loading ? 'Signing in...' : 'Sign in'}</button>
             <button className="registerpage" onClick={redirectRegisterPage}>Create an account</button>
         </div>
       </div>

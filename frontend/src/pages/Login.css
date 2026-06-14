@@ -95,6 +95,14 @@
   justify-content: center;
 }
 
+.error-msg {
+  width: 300px;
+  font-size: 0.8rem;
+  color: #ff4444;
+  text-align: center;
+  margin-bottom: 8px;
+}
+
 .signinbutton {
   width: 300px;
   padding: 10px;
