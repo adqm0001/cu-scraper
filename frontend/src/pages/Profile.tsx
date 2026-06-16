@@ -10,12 +10,14 @@ export function Profile() {
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [newEmail, setNewEmail] = useState('');
+  const [emailCurrentPassword, setEmailCurrentPassword] = useState('');
   const [editingEmail, setEditingEmail] = useState(false);
   const [savingEmail, setSavingEmail] = useState(false);
   const [newPassword, setNewPassword] = useState('');
   const [editingPassword, setEditingPassword] = useState(false);
   const [savingPassword, setSavingPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
+  const [deleteCurrentPassword, setDeleteCurrentPassword] = useState('');
   const [deleting, setDeleting] = useState(false);
   const [notification, setNotification] = useState('');
   const notificationTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -53,20 +55,23 @@ export function Profile() {
   }, []);
 
   async function handleSaveEmail() {
-    if (!newEmail) return;
+    if (!newEmail || !emailCurrentPassword) return;
     setSavingEmail(true);
     try {
       const response = await fetch(`${import.meta.env.VITE_API_URL}/users/me/email`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ email: newEmail }),
+        body: JSON.stringify({ email: newEmail, current_password: emailCurrentPassword }),
         signal: AbortSignal.timeout(QUICK_TIMEOUT),
       });
       if (response.ok) {
         setEmail(newEmail);
         setNewEmail('');
+        setEmailCurrentPassword('');
         setEditingEmail(false);
         showNotification('Email updated');
+      } else if (response.status === 401) {
+        showNotification('Incorrect password.');
       } else {
         showNotification('Failed to update email. Please try again.');
       }
@@ -79,6 +84,7 @@ export function Profile() {
 
   function handleCancelEmail() {
     setNewEmail('');
+    setEmailCurrentPassword('');
     setEditingEmail(false);
   }
 
@@ -114,15 +120,19 @@ export function Profile() {
   }
 
   async function handleDeleteAccount() {
+    if (!deleteCurrentPassword) return;
     setDeleting(true);
     try {
       const response = await fetch(`${import.meta.env.VITE_API_URL}/users/me`, {
         method: 'DELETE',
-        headers: { Authorization: `Bearer ${token}` },
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ current_password: deleteCurrentPassword }),
         signal: AbortSignal.timeout(QUICK_TIMEOUT),
       });
       if (response.ok) {
         logOut();
+      } else if (response.status === 401) {
+        showNotification('Incorrect password.');
       } else {
         setShowConfirm(false);
         showNotification('Failed to delete account. Please try again.');
@@ -133,6 +143,11 @@ export function Profile() {
     } finally {
       setDeleting(false);
     }
+  }
+
+  function handleCancelDelete() {
+    setDeleteCurrentPassword('');
+    setShowConfirm(false);
   }
 
   return (
@@ -161,22 +176,32 @@ export function Profile() {
             <div className="profile-field">
               <span className="profile-field-label">Notification Email</span>
               {editingEmail ? (
-                <div className="email-edit-row">
+                <div className="email-edit-stack">
                   <input
                     className="profile-field-input"
                     type="email"
                     value={newEmail}
                     placeholder={email}
                     onChange={e => setNewEmail(e.target.value)}
-                    onKeyDown={e => { if (e.key === 'Enter') handleSaveEmail(); if (e.key === 'Escape') handleCancelEmail(); }}
+                    onKeyDown={e => { if (e.key === 'Escape') handleCancelEmail(); }}
                     autoFocus
                   />
-                  <button className="btn-save" disabled={savingEmail || !newEmail} onClick={handleSaveEmail}>
-                    {savingEmail ? 'Saving...' : 'Save'}
-                  </button>
-                  <button className="btn-cancel-inline" disabled={savingEmail} onClick={handleCancelEmail}>
-                    Cancel
-                  </button>
+                  <input
+                    className="profile-field-input"
+                    type="password"
+                    value={emailCurrentPassword}
+                    placeholder="Current password"
+                    onChange={e => setEmailCurrentPassword(e.target.value)}
+                    onKeyDown={e => { if (e.key === 'Enter') handleSaveEmail(); if (e.key === 'Escape') handleCancelEmail(); }}
+                  />
+                  <div className="email-edit-actions">
+                    <button className="btn-save" disabled={savingEmail || !newEmail || !emailCurrentPassword} onClick={handleSaveEmail}>
+                      {savingEmail ? 'Saving...' : 'Save'}
+                    </button>
+                    <button className="btn-cancel-inline" disabled={savingEmail} onClick={handleCancelEmail}>
+                      Cancel
+                    </button>
+                  </div>
                 </div>
               ) : (
                 <div className="email-display-row">
@@ -251,18 +276,27 @@ export function Profile() {
       </main>
 
       {showConfirm && (
-        <div className="confirm-overlay" onClick={() => !deleting && setShowConfirm(false)}>
+        <div className="confirm-overlay" onClick={() => !deleting && handleCancelDelete()}>
           <div className="confirm-dialog" onClick={e => e.stopPropagation()}>
             <h2>Delete Account</h2>
             <p>
               This will permanently delete your CU Scraper account, stored Carleton credentials, and all grade data.
               You will be logged out immediately. This does not affect your real Carleton University account.
             </p>
+            <input
+              className="profile-field-input"
+              type="password"
+              value={deleteCurrentPassword}
+              placeholder="Enter your password to confirm"
+              onChange={e => setDeleteCurrentPassword(e.target.value)}
+              onKeyDown={e => { if (e.key === 'Escape') handleCancelDelete(); }}
+              autoFocus
+            />
             <div className="confirm-actions">
-              <button className="btn-cancel" disabled={deleting} onClick={() => setShowConfirm(false)}>
+              <button className="btn-cancel" disabled={deleting} onClick={handleCancelDelete}>
                 Cancel
               </button>
-              <button className="btn-confirm-delete" disabled={deleting} onClick={handleDeleteAccount}>
+              <button className="btn-confirm-delete" disabled={deleting || !deleteCurrentPassword} onClick={handleDeleteAccount}>
                 {deleting ? 'Deleting...' : 'Yes, delete my account'}
               </button>
             </div>

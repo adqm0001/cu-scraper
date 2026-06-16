@@ -226,7 +226,19 @@
 
 @media (max-width: 480px) {
   .dashboard-nav {
-    padding: 14px 16px;
+    padding: 12px 16px;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .nav-actions {
+    gap: 8px;
+  }
+
+  .btn-refresh,
+  .btn-outline {
+    padding: 6px 12px;
+    font-size: 0.78rem;
   }
 
   .dashboard-content {
@@ -247,7 +259,4 @@
     font-size: 1.4rem;
   }
 
-  .nav-actions .btn-outline:not(.btn-logout) {
-    display: none;
-  }
 }

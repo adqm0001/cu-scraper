@@ -2,12 +2,13 @@ from dotenv import load_dotenv
 from datetime import datetime, timedelta
 from cu_scraper import info
 from db import register as db_register, fetch_and_store_grades, get_user, get_grades as db_get_grades, delete_user as db_delete_user, check_changes, update_grades
-from db import get_user_credentials, update_email as db_update_email, update_password as db_update_password
+from db import get_user_credentials, update_email as db_update_email, update_password as db_update_password, verify_user_password
 import os
 from poller import send_welcome_email, send_goodbye_email, send_grade_change_email, send_email_changed_old, send_email_changed_new
 from fastapi import BackgroundTasks, FastAPI, HTTPException, Depends, Request
 from jose import jwt
-from pydantic import BaseModel, Field
+from jose.exceptions import JWTError
+from pydantic import BaseModel, Field, EmailStr
 import bcrypt
 from typing import Annotated
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
@@ -19,13 +20,21 @@ from datetime import datetime, timedelta, timezone
 load_dotenv()
 
 JWT_SECRET = os.getenv("JWT_SECRET")
+assert JWT_SECRET, "JWT_SECRET missing"
 JWT_EXPIRE_MINUTES = int(os.getenv("JWT_EXPIRE_MINUTES") or 60)
 
 limiter = Limiter(key_func=get_remote_address)
-app = FastAPI()
+app = FastAPI(docs_url=None, redoc_url=None, openapi_url=None)
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 security = HTTPBearer()
+
+def get_current_user_id(credentials: Annotated[HTTPAuthorizationCredentials, Depends(security)]) -> str:
+    try:
+        payload = jwt.decode(credentials.credentials, JWT_SECRET, algorithms=["HS256"])
+    except JWTError:
+        raise HTTPException(status_code=401, detail="Unauthorized access")
+    return payload["sub"]
 
 app.add_middleware(
     CORSMiddleware,
@@ -37,13 +46,17 @@ app.add_middleware(
 class RegisterRequest(BaseModel):
     username: str = Field(max_length=50)
     password: str = Field(max_length=70)
-    email: str = Field(max_length=70)
+    email: EmailStr = Field(max_length=70)
 
 class UpdateEmailRequest(BaseModel):
-    email: str = Field(max_length=70)
+    email: EmailStr = Field(max_length=70)
+    current_password: str = Field(max_length=70)
 
 class UpdatePasswordRequest(BaseModel):
     password: str = Field(max_length=70)
+
+class DeleteAccountRequest(BaseModel):
+    current_password: str = Field(max_length=70)
 
 class LoginRequest(BaseModel):
     username: str = Field(max_length=50)
@@ -79,10 +92,8 @@ async def register(request: Request, req: RegisterRequest, background_tasks: Bac
 @limiter.limit("5/minute")
 async def login(request: Request, req: LoginRequest):
     user = await get_user(req.username)
-    usernotfound_msg = "username not found"
-
-    if user == usernotfound_msg:
-        raise HTTPException(status_code=401, detail=usernotfound_msg)
+    if user == "username not found":
+        raise HTTPException(status_code=401, detail="invalid credentials")
     else:
         if not bcrypt.checkpw(req.password.encode(), user["hashed_password"].encode()):
             raise HTTPException(status_code=401, detail="invalid credentials")
@@ -94,28 +105,14 @@ async def login(request: Request, req: LoginRequest):
         return {"accessToken": token}
 
 @app.get("/grades")
-async def get_grades(credentials: Annotated[HTTPAuthorizationCredentials, Depends(security)]):
-    token = credentials.credentials
-    try:
-        payload = jwt.decode(token, JWT_SECRET, algorithms=["HS256"])
-    except Exception:
-        raise HTTPException(status_code=401, detail="Unauthorized access")
-    user_id = payload["sub"]
-
+async def get_grades(user_id: Annotated[str, Depends(get_current_user_id)]):
     grades, last_updated = await db_get_grades(user_id)
 
     return {"grades": grades, "last_updated": last_updated}
 
 @app.post("/grades/check")
 @limiter.limit("5/minute")
-async def check_grades(request: Request, credentials: Annotated[HTTPAuthorizationCredentials, Depends(security)]):
-    token = credentials.credentials
-    try:
-        payload = jwt.decode(token, JWT_SECRET, algorithms=["HS256"])
-    except Exception:
-        raise HTTPException(status_code=401, detail="Unauthorized access")
-    user_id = payload["sub"]
-
+async def check_grades(request: Request, user_id: Annotated[str, Depends(get_current_user_id)]):
     user_creds = await get_user_credentials(user_id)
     if user_creds == "user_id not found":
         raise HTTPException(status_code=404, detail="user not found")
@@ -134,14 +131,7 @@ async def check_grades(request: Request, credentials: Annotated[HTTPAuthorizatio
     return fresh_courses
 
 @app.get("/users/me")
-async def get_me(credentials: Annotated[HTTPAuthorizationCredentials, Depends(security)]):
-    token = credentials.credentials
-    try:
-        payload = jwt.decode(token, JWT_SECRET, algorithms=["HS256"])
-    except Exception:
-        raise HTTPException(status_code=401, detail="Unauthorized access")
-    user_id = payload["sub"]
-
+async def get_me(user_id: Annotated[str, Depends(get_current_user_id)]):
     user = await get_user_credentials(user_id)
     if user == "user_id not found":
         raise HTTPException(status_code=404, detail="user not found")
@@ -150,13 +140,9 @@ async def get_me(credentials: Annotated[HTTPAuthorizationCredentials, Depends(se
 
 @app.patch("/users/me/email")
 @limiter.limit("5/minute")
-async def update_email(request: Request, req: UpdateEmailRequest, background_tasks: BackgroundTasks, credentials: Annotated[HTTPAuthorizationCredentials, Depends(security)]):
-    token = credentials.credentials
-    try:
-        payload = jwt.decode(token, JWT_SECRET, algorithms=["HS256"])
-    except Exception:
-        raise HTTPException(status_code=401, detail="Unauthorized access")
-    user_id = payload["sub"]
+async def update_email(request: Request, req: UpdateEmailRequest, background_tasks: BackgroundTasks, user_id: Annotated[str, Depends(get_current_user_id)]):
+    if not await verify_user_password(user_id, req.current_password):
+        raise HTTPException(status_code=401, detail="invalid credentials")
 
     user = await get_user_credentials(user_id)
     if user == "user_id not found":
@@ -171,14 +157,7 @@ async def update_email(request: Request, req: UpdateEmailRequest, background_tas
 
 @app.patch("/users/me/password")
 @limiter.limit("5/minute")
-async def update_password(request: Request, req: UpdatePasswordRequest, credentials: Annotated[HTTPAuthorizationCredentials, Depends(security)]):
-    token = credentials.credentials
-    try:
-        payload = jwt.decode(token, JWT_SECRET, algorithms=["HS256"])
-    except Exception:
-        raise HTTPException(status_code=401, detail="Unauthorized access")
-    user_id = payload["sub"]
-
+async def update_password(request: Request, req: UpdatePasswordRequest, user_id: Annotated[str, Depends(get_current_user_id)]):
     user = await get_user_credentials(user_id)
     if user == "user_id not found":
         raise HTTPException(status_code=404, detail="user not found")
@@ -191,14 +170,10 @@ async def update_password(request: Request, req: UpdatePasswordRequest, credenti
     return {"success": True}
 
 @app.delete("/users/me")
-async def delete_user(background_tasks: BackgroundTasks, credentials: Annotated[HTTPAuthorizationCredentials, Depends(security)]):
-    token = credentials.credentials
-    try:
-        payload = jwt.decode(token, JWT_SECRET, algorithms=["HS256"])
-    except Exception as e:
-        print(f"JWT error: {e}")
-        raise HTTPException(status_code=401, detail="Unauthorized access")
-    user_id = payload["sub"]
+async def delete_user(req: DeleteAccountRequest, background_tasks: BackgroundTasks, user_id: Annotated[str, Depends(get_current_user_id)]):
+    if not await verify_user_password(user_id, req.current_password):
+        raise HTTPException(status_code=401, detail="invalid credentials")
+
     user_creds = await get_user_credentials(user_id)
     if user_creds == "user_id not found":
         raise HTTPException(status_code=404, detail="user not found")
@@ -206,7 +181,7 @@ async def delete_user(background_tasks: BackgroundTasks, credentials: Annotated[
     email = user_creds["email"]
     background_tasks.add_task(send_goodbye_email, email, username)
 
-    await db_delete_user(user_id) 
+    await db_delete_user(user_id)
 
     return {"success": True}
 

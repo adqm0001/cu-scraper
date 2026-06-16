@@ -111,6 +111,17 @@
   gap: 8px;
 }
 
+.email-edit-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.email-edit-actions {
+  display: flex;
+  gap: 8px;
+}
+
 .profile-field-input {
   flex: 1;
   background: #0d0d0d;

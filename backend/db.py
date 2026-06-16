@@ -13,10 +13,16 @@ assert key, "Key not found in .env"
 fernet = Fernet(key)
 
 async def register(username: str, password: str, email: str):
+    async with await psycopg.AsyncConnection.connect(db) as conn:
+        async with conn.cursor() as cur:
+            await cur.execute("SELECT 1 FROM users WHERE username = %s", (username,))
+            if await cur.fetchone() is not None:
+                return "username already exists"
+
     result_info = await info(username, password)
     if not result_info:
         return "invalid credentials"
-    
+
     enc_password = fernet.encrypt(password.encode()).decode()
     enc_email = fernet.encrypt(email.encode()).decode()
     hashed_password = bcrypt.hashpw(password.encode(), bcrypt.gensalt())
@@ -33,7 +39,7 @@ async def register(username: str, password: str, email: str):
                 RETURNING user_id
                 """,
                 (username, enc_password, enc_email, hashed_password.decode()))
-            
+
             row = await cur.fetchone()
             if row is None:
                 return "username already exists"
@@ -254,7 +260,16 @@ async def get_user(username: str):
                 return "username not found"
             return {"user_id": row[0], "hashed_password": row[1]}
 
-async def get_users(): 
+async def verify_user_password(user_id: str, plaintext: str) -> bool:
+    async with await psycopg.AsyncConnection.connect(db) as conn:
+        async with conn.cursor() as cur:
+            await cur.execute("SELECT hashed_password FROM users WHERE user_id = %s", (user_id,))
+            row = await cur.fetchone()
+            if row is None:
+                return False
+            return bcrypt.checkpw(plaintext.encode(), row[0].encode())
+
+async def get_users():
     async with await psycopg.AsyncConnection.connect(db) as conn: 
         async with conn.cursor() as cur:
             await cur.execute("""

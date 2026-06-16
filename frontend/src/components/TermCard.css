@@ -36,8 +36,14 @@
   padding: 4px 12px;
   letter-spacing: 0.5px;
 }
+.table-scroll {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
 .course-table {
   width: 100%;
+  min-width: 480px;
   border-collapse: collapse;
 }
 
@@ -96,9 +102,33 @@
   width: 80px;
 }
 
+.td-qp {
+  color: #666;
+  width: 100px;
+  text-align: center;
+}
+
+.course-table th:last-child {
+  text-align: center;
+}
+
 .no-courses {
   padding: 20px 24px;
   color: #444;
   font-size: 0.85rem;
   text-align: center;
+}
+
+@media (max-width: 480px) {
+  .term-header {
+    padding: 12px 16px;
+  }
+
+  .course-table th {
+    padding: 8px 12px;
+  }
+
+  .course-table td {
+    padding: 10px 12px;
+  }
 }

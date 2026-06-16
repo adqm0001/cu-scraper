@@ -31,26 +31,30 @@ export function TermCard({ termCode, courses }: TermProps) {
       {courses.length === 0 ? (
         <p className="no-courses">No courses this term.</p>
       ) : (
-        <table className="course-table">
-          <thead>
-            <tr>
-              <th>Course</th>
-              <th>Title</th>
-              <th>Grade</th>
-              <th>Credits</th>
-            </tr>
-          </thead>
-          <tbody>
-            {courses.map(course => (
-              <tr key={course.crn}>
-                <td className="td-code">{course.subject} {course.course}</td>
-                <td className="td-title">{course.coursetitle}</td>
-                <td className="td-grade">{course.finalgrade || '—'}</td>
-                <td className="td-credits">{course.attempted}</td>
+        <div className="table-scroll">
+          <table className="course-table">
+            <thead>
+              <tr>
+                <th>Course</th>
+                <th>Title</th>
+                <th>Grade</th>
+                <th>Credits</th>
+                <th>Quality Points</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {courses.map(course => (
+                <tr key={course.crn}>
+                  <td className="td-code">{course.subject} {course.course}</td>
+                  <td className="td-title">{course.coursetitle}</td>
+                  <td className="td-grade">{course.finalgrade || '—'}</td>
+                  <td className="td-credits">{course.attempted}</td>
+                  <td className="td-qp">{course.qualitypoints || '—'}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       )}
     </div>
   );
