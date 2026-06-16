@@ -344,3 +344,41 @@
     padding: 28px 24px;
   }
 }
+
+@media (max-width: 480px) {
+  .profile-content {
+    padding: 24px 16px;
+  }
+
+  .profile-card-body {
+    padding: 18px 16px;
+  }
+
+  .email-edit-row {
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .email-edit-row .profile-field-input {
+    flex: 1 1 100%;
+  }
+
+  .email-edit-row .btn-save,
+  .email-edit-row .btn-cancel-inline {
+    flex: 1;
+  }
+
+  .email-display-row {
+    flex-wrap: wrap;
+  }
+
+  .email-display-row .profile-field-value {
+    flex: 1 1 100%;
+    min-width: 0;
+    word-break: break-all;
+  }
+
+  .email-display-row .btn-edit {
+    margin-left: auto;
+  }
+}
