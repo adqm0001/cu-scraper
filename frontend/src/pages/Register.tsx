@@ -46,6 +46,10 @@ export function Register(){
       displayErrorMsg('Email cannot be empty!');
       return;
     }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){
+      displayErrorMsg('Please enter a valid email address.');
+      return;
+    }
     setLoading(true);
     try {
       const response = await fetch(`${import.meta.env.VITE_API_URL}/register`, {
