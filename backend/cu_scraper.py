@@ -57,57 +57,62 @@ async def get_terms(cookies):
 
         return terms
 
+def parse_grades_page(html):
+    soup = BeautifulSoup(html, 'html.parser') 
+    all_tables = soup.find_all('td', class_="dddefault")
+    courses = []
+    student_program = {}
+    header = True
+    for i in range(0, len(all_tables), 11):
+        chunk = all_tables[i:i+11]
+        if header:
+            student_program = {    
+                "currentprogram": chunk[0].get_text(strip=True),
+                "level": chunk[1].get_text(strip=True),
+                "program": chunk[2].get_text(strip=True),
+                "admitterm": chunk[3].get_text(strip=True),
+                "admittype": chunk[4].get_text(strip=True),
+                #"catalogterm": chunk[5].get_text(strip=True),
+                "college": chunk[6].get_text(strip=True),
+                "campus": chunk[7].get_text(strip=True),
+                "major": chunk[8].get_text(strip=True),
+                "concentration": chunk[9].get_text(strip=True),
+                "academicstanding": chunk[10].get_text(strip=True)  
+            }
+            header = False
+        else:
+            course = {
+                "crn": chunk[0].get_text(strip=True),
+                "subject": chunk[1].get_text(strip=True),
+                "course": chunk[2].get_text(strip=True),
+                "section": chunk[3].get_text(strip=True),
+                "coursetitle": chunk[4].get_text(strip=True),
+                "campus": chunk[5].get_text(strip=True),
+                "finalgrade": chunk[6].get_text(strip=True),
+                "attempted": chunk[7].get_text(strip=True),
+                "earned": chunk[8].get_text(strip=True),
+                "gpahours": chunk[9].get_text(strip=True),
+                "qualitypoints": chunk[10].get_text(strip=True)
+            }
+            courses.append(course)
+    student_info = soup.find('div', class_='staticheaders')
+    lines = student_info.get_text(separator="\n", strip=True).split("\n")
+    student_number = lines[0].split(" ", 1)[0]
+    student_name = lines[0].split(" ", 1)[1]
+    student_info_dict = {
+            "studentnumber": student_number,
+            "studentname": student_name
+    }
+
+    return student_name, student_number, student_info_dict, courses, student_program
+
+
 async def get_grades(cookies, term):
     cookies_dict = build_cookies(cookies)
 
     async with httpx.AsyncClient(cookies=cookies_dict) as client:
         response = await client.post("https://central.carleton.ca/prod/bwskogrd.P_ViewGrde", data={"term_in": term})
-        soup = BeautifulSoup(response.text, 'html.parser') 
-        all_tables = soup.find_all('td', class_="dddefault")
-        courses = []
-        student_program = {}
-        header = True
-        for i in range(0, len(all_tables), 11):
-            chunk = all_tables[i:i+11]
-            if header:
-                student_program = {    
-                    "currentprogram": chunk[0].get_text(strip=True),
-                    "level": chunk[1].get_text(strip=True),
-                    "program": chunk[2].get_text(strip=True),
-                    "admitterm": chunk[3].get_text(strip=True),
-                    "admittype": chunk[4].get_text(strip=True),
-                    #"catalogterm": chunk[5].get_text(strip=True),
-                    "college": chunk[6].get_text(strip=True),
-                    "campus": chunk[7].get_text(strip=True),
-                    "major": chunk[8].get_text(strip=True),
-                    "concentration": chunk[9].get_text(strip=True),
-                    "academicstanding": chunk[10].get_text(strip=True)  
-                }
-                header = False
-            else:
-                course = {
-                    "crn": chunk[0].get_text(strip=True),
-                    "subject": chunk[1].get_text(strip=True),
-                    "course": chunk[2].get_text(strip=True),
-                    "section": chunk[3].get_text(strip=True),
-                    "coursetitle": chunk[4].get_text(strip=True),
-                    "campus": chunk[5].get_text(strip=True),
-                    "finalgrade": chunk[6].get_text(strip=True),
-                    "attempted": chunk[7].get_text(strip=True),
-                    "earned": chunk[8].get_text(strip=True),
-                    "gpahours": chunk[9].get_text(strip=True),
-                    "qualitypoints": chunk[10].get_text(strip=True)
-                }
-                courses.append(course)
-        student_info = soup.find('div', class_='staticheaders')
-        lines = student_info.get_text(separator="\n", strip=True).split("\n")
-        student_number = lines[0].split(" ", 1)[0]
-        student_name = lines[0].split(" ", 1)[1]
-        student_info_dict = {
-                "studentnumber": student_number,
-                "studentname": student_name
-        }
-
+        student_name, student_number, student_info_dict, courses, student_program = parse_grades_page(response.text)
         return student_name, student_number, student_info_dict, courses, student_program
 
 async def info(username, password):

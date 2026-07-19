@@ -151,40 +151,43 @@ async def get_grades(user_id: str, term_code=None):
 
             return grades, last_updated
 
-async def check_changes(user_id: str, fresh_courses: dict):
-    db_grades, _ = await get_grades(user_id)
-    changes = {} 
+def diff_grades(db_grades: dict, fresh_courses: dict) -> tuple[dict, list]:
+    changes: dict = {}
+    deletions: list = []
+
     for term in db_grades:
         if term not in fresh_courses:
             continue
         if db_grades[term] == fresh_courses[term]:
             continue
-        else:
-            for fresh_course in fresh_courses[term]:
-                found = False
-                for course in db_grades[term]:
-                    if course["crn"] == fresh_course["crn"]:
-                        found = True
-                        if course["finalgrade"] != fresh_course["finalgrade"]:
-                            if term not in changes:
-                                changes[term] = []
-                            changes[term].append(fresh_course)
-                if not found:
-                    if term not in changes:
-                        changes[term] = []
-                    changes[term].append(fresh_course)
 
-            for course in db_grades[term]:
-                found = False
-                for fresh_course in fresh_courses[term]:
-                    if course["crn"] == fresh_course["crn"]:
-                        found = True
-                if not found:
-                    await delete_course(user_id, term, course["crn"]) 
+        for fresh_course in fresh_courses[term]:
+            match = next(
+                (c for c in db_grades[term] if c["crn"] == fresh_course["crn"]),
+                None,
+            )
+            if match is None:
+                changes.setdefault(term, []).append(fresh_course)
+            elif match["finalgrade"] != fresh_course["finalgrade"]:
+                changes.setdefault(term, []).append(fresh_course)
+
+        for db_course in db_grades[term]:
+            in_fresh = any(fc["crn"] == db_course["crn"] for fc in fresh_courses[term])
+            if not in_fresh:
+                deletions.append((term, db_course["crn"]))
+
     for term in fresh_courses:
         if term not in db_grades:
             changes[term] = fresh_courses[term]
 
+    return changes, deletions
+
+
+async def check_changes(user_id: str, fresh_courses: dict):
+    db_grades, _ = await get_grades(user_id)
+    changes, deletions = diff_grades(db_grades, fresh_courses)
+    for term, crn in deletions:
+        await delete_course(user_id, term, crn)
     return changes
 
 async def update_grades(user_id: str, courses: dict):
