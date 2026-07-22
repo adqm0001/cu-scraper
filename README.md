@@ -9,10 +9,10 @@ This is a personal project and it is not affiliated with Carleton University in 
 ## What it does
 
 * Create an account and log in
-* See all your grades in one place, grouped by term, with your cumulative GPA, total credits and term count
+* See all your grades in one place, grouped by term, with your cumulative GPA, total credits, quality points and term count
 * Search your courses by code (like ECOR 1031) or by name
 * Get an email whenever a grade changes
-* Change which email gets those notifications, or delete your account, from the profile page
+* Change which email gets those notifications, or delete your account, from the profile page (both actions ask for your password again so a stolen session alone isn't enough)
 
 ## How it works
 
@@ -20,7 +20,7 @@ Logging in is the hard part. Carleton Central uses single sign on, so to put it 
 
 Doing this with plain HTTP requests would be extremely hard, and if the website updates it would break, so it wasn't worth the effort. I ended up opting to use a headless browser to go through the real login with the Python Playwright library, and grab the session cookies once it's through. Using those cookies, I hit the grade pages directly with normal HTTP requests, then pull the grades out of the HTML with the BeautifulSoup Python library.
 
-The checking runs on its own in the background. A poller goes through every user, scrapes their grades again, and compares them to what's already saved. If something's different, it fires off the email.
+The checking runs on its own in the background. A poller goes through every user, scrapes their grades again, and compares them to what's already saved. If something's different, it fires off the email. The scraper also sanity checks the shape of what it pulled out of the page, so if Carleton quietly changes their HTML the poller notices instead of silently saving garbage. If the same user keeps failing, a Discord webhook pings me so I can go look.
 
 ## Tech
 
@@ -52,6 +52,7 @@ JWT_EXPIRE_MINUTES=60
 FERNET_KEY=your fernet key
 GOOGLE_EMAIL=the gmail address that sends notifications
 GOOGLE_PASSWORD=a gmail app password for that account
+DISCORD_WEBHOOK_URL=optional, a discord webhook to ping when a user's scrape keeps failing
 ```
 
 Then start the API and the poller (they run as two separate processes):
@@ -81,9 +82,20 @@ npm run dev      # local dev server
 npm run build    # production build
 ```
 
+## Tests
+
+The backend has a pytest suite covering the scraping, the grade diffing, the email formatting and the API endpoints. To run it:
+
+```bash
+cd backend
+pytest
+```
+
+GitHub Actions runs the same suite on every push and pull request.
+
 ## Security and privacy
 
-Your Carleton password and email never get stored in plain text. They're encrypted with Fernet, and the password for the app itself is hashed with bcrypt. The production frontend build also ships a Content Security Policy so that scripts can only run from places I trust and the page can't quietly send data somewhere it shouldn't. Anything sensitive like the `.env` files and keys stays out of the repo.
+Your Carleton password and email never get stored in plain text. They're encrypted with Fernet, and the password for the app itself is hashed with bcrypt. Changing your notification email or deleting your account both require typing your password again, so a stolen token on its own can't quietly hijack where the alerts go or wipe your data. The production frontend build also ships a Content Security Policy so that scripts can only run from places I trust and the page can't quietly send data somewhere it shouldn't. Anything sensitive like the `.env` files and keys stays out of the repo.
 
 If you delete your account, your data is gone from the database for good, the stored credentials and the full grade history. I don't keep a copy of any of it.
 
