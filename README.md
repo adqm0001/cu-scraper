@@ -53,6 +53,8 @@ FERNET_KEY=your fernet key
 GOOGLE_EMAIL=the gmail address that sends notifications
 GOOGLE_PASSWORD=a gmail app password for that account
 DISCORD_WEBHOOK_URL=optional, a discord webhook to ping when a user's scrape keeps failing
+TRUSTED_HOSTS=comma separated hostnames the backend accepts (e.g. localhost,192.0.2.1)
+CORS_ORIGINS=comma separated frontend origins allowed to call the backend (e.g. https://example.com), leave empty in dev
 ```
 
 Then start the API and the poller (they run as two separate processes):
