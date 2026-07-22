@@ -113,7 +113,7 @@ async def scrape_user(user, sem):
     async with sem:
         result = await info(username, password)
         if result is None:
-            return "user not found"
+            raise RuntimeError("login failed")
         _,_,_,_, fresh_courses,_ = result
     changes = await check_changes(user_id, fresh_courses)
     if changes:

@@ -1,6 +1,10 @@
 import asyncio
+import re
 import httpx
 from bs4 import BeautifulSoup
+
+# This lists every valid Carleton grade code so we can tell if the page layout changed.
+GRADE_RE = re.compile(r"^([A-D][+-]?|F|AEG|AUD|CEX|CH|CLP|CR|CTN|CUO|CUR|DEF|GNA|IP|NR|SAT|UCH|UNS|WDN)?$")
 
 from playwright.async_api import async_playwright, Playwright, expect
 
@@ -24,7 +28,7 @@ async def login(playwright: Playwright, username: str, password: str):
         await expect(continue_btn).to_be_visible(timeout=3000)
         await continue_btn.click()
         await page.wait_for_load_state("networkidle")
-    except:
+    except Exception:
         pass
     try:
         await expect(page.get_by_role("link", name="Display grades")).to_be_visible()
@@ -94,6 +98,10 @@ def parse_grades_page(html):
                 "gpahours": chunk[9].get_text(strip=True),
                 "qualitypoints": chunk[10].get_text(strip=True)
             }
+            if not GRADE_RE.match(course["finalgrade"]):
+                raise ValueError(f"unexpected finalgrade: {course['finalgrade']!r}")
+            if course["crn"] and not course["crn"].isdigit():
+                raise ValueError(f"unexpected crn: {course['crn']!r}")
             courses.append(course)
     student_info = soup.find('div', class_='staticheaders')
     lines = student_info.get_text(separator="\n", strip=True).split("\n")
@@ -122,10 +130,7 @@ async def info(username, password):
             return None
         terms = await get_terms(cookies)
 
-        if terms is None:
-            return None
-
-        all_courses = {} 
+        all_courses = {}
         student_name = student_number = student_info_dict = student_program = None
 
         for i, term in enumerate(terms):
