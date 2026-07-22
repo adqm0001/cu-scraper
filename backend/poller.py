@@ -5,7 +5,10 @@ from email.mime.text import MIMEText
 from db import get_users, check_changes, update_grades, update_last_checked
 from cu_scraper import info
 import asyncio
+import httpx
 load_dotenv()
+
+DISCORD_WEBHOOK_URL = os.getenv("DISCORD_WEBHOOK_URL")
 
 
 def build_welcome_email(username: str) -> tuple[str, str]:
@@ -129,9 +132,12 @@ async def poll():
                 failed.append(user)
         if failed:
             results = await asyncio.gather(*[scrape_user(user, sem) for user in failed], return_exceptions=True)
-            for r in results:
-                if isinstance(r, Exception):
-                    print(f"scrape failed: {r}")
+            async with httpx.AsyncClient() as client:
+                for user, r in zip(failed, results):
+                    if isinstance(r, Exception):
+                        payload = {"content": f"{user['username']}: {type(r).__name__}"}
+                        await client.post(DISCORD_WEBHOOK_URL, json=payload)
+                        print(f"scrape failed for {user['username']}: {r!r}")
 
 
         await asyncio.sleep(1800)
