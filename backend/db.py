@@ -276,7 +276,8 @@ async def get_users():
     async with await psycopg.AsyncConnection.connect(db) as conn: 
         async with conn.cursor() as cur:
             await cur.execute("""
-                SELECT user_id, username, password, email from users 
+                SELECT user_id, username, password, email from users
+                WHERE is_test = false
                 """)
 
             rows = await cur.fetchall()
