@@ -16,6 +16,10 @@ export function getAuthErrorMessage(
     return 'Too many attempts. Please wait a moment and try again.';
   }
 
+  if (status === 502) {
+    return 'Could not read your grades from Carleton right now. Please try again in a bit.';
+  }
+
   if (Array.isArray(detail)) {
     const emailErr = detail.find(e => e.loc?.includes('email'));
     if (emailErr) return 'Please enter a valid email address.';

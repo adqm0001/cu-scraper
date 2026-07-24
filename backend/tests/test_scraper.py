@@ -7,7 +7,7 @@ FIXTURES = Path(__file__).parent / "fixtures"
 
 def test_parse_grades_page_extracts_student_identity():
     html = (FIXTURES / "grades_page.html").read_text()
-    student_name, student_number, info, _, _ = parse_grades_page(html)
+    student_name, student_number, info, _, _, _ = parse_grades_page(html)
 
     assert student_name == "John Doe"
     assert student_number == "100000000"
@@ -16,14 +16,14 @@ def test_parse_grades_page_extracts_student_identity():
 
 def test_parse_grades_page_extracts_all_courses():
     html = (FIXTURES / "grades_page.html").read_text()
-    _, _, _, courses, _ = parse_grades_page(html)
+    _, _, _, courses, _, _ = parse_grades_page(html)
 
     assert len(courses) == 14
 
 
 def test_parse_grades_page_extracts_course_fields():
     html = (FIXTURES / "grades_page.html").read_text()
-    _, _, _, courses, _ = parse_grades_page(html)
+    _, _, _, courses, _, _ = parse_grades_page(html)
 
     first = courses[0]
     assert first["crn"] == "30001"
@@ -41,7 +41,7 @@ def test_parse_grades_page_extracts_course_fields():
 
 def test_parse_grades_page_handles_full_grade_scale():
     html = (FIXTURES / "grades_page.html").read_text()
-    _, _, _, courses, _ = parse_grades_page(html)
+    _, _, _, courses, _, _ = parse_grades_page(html)
 
     grades = [c["finalgrade"] for c in courses]
     assert grades == [
@@ -53,7 +53,7 @@ def test_parse_grades_page_handles_full_grade_scale():
 
 def test_parse_grades_page_extracts_failed_course():
     html = (FIXTURES / "grades_page.html").read_text()
-    _, _, _, courses, _ = parse_grades_page(html)
+    _, _, _, courses, _, _ = parse_grades_page(html)
 
     failed = next(c for c in courses if c["finalgrade"] == "F")
     assert failed["subject"] == "PHIL"
@@ -61,9 +61,25 @@ def test_parse_grades_page_extracts_failed_course():
     assert failed["attempted"] == "0.500"
 
 
+def test_parse_grades_page_accepts_withdrawn_grade():
+    html = (FIXTURES / "grades_page.html").read_text().replace(">SAT<", ">WNR<")
+    _, _, _, courses, _, unknown = parse_grades_page(html)
+
+    assert "WNR" in [c["finalgrade"] for c in courses]
+    assert unknown == set()
+
+
+def test_parse_grades_page_collects_unknown_grade_without_raising():
+    html = (FIXTURES / "grades_page.html").read_text().replace(">SAT<", ">ZZZ<")
+    _, _, _, courses, _, unknown = parse_grades_page(html)
+
+    assert unknown == {"ZZZ"}
+    assert len(courses) == 14
+
+
 def test_parse_grades_page_extracts_program():
     html = (FIXTURES / "grades_page.html").read_text()
-    _, _, _, _, program = parse_grades_page(html)
+    _, _, _, _, program, _ = parse_grades_page(html)
 
     assert program["currentprogram"] == "Bachelor of Engineering"
     assert program["level"] == "Undergraduate"

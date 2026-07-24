@@ -1,10 +1,32 @@
 import asyncio
+import os
 import re
 import httpx
 from bs4 import BeautifulSoup
+from dotenv import load_dotenv
+
+load_dotenv()
+
+DISCORD_WEBHOOK_URL = os.getenv("DISCORD_WEBHOOK_URL")
 
 # This lists every valid Carleton grade code so we can tell if the page layout changed.
-GRADE_RE = re.compile(r"^([A-D][+-]?|F|AEG|AUD|CEX|CH|CLP|CR|CTN|CUO|CUR|DEF|GNA|IP|NR|SAT|UCH|UNS|WDN)?$")
+GRADE_RE = re.compile(r"^([A-D][+-]?|F|ABS|AEG|AUD|CEX|CH|CLP|CR|CTN|CUO|CUR|DEF|FND|GNA|IP|NGR|NR|PASS|SAT|TRC|UCH|UNS|WDN|WNR)?$")
+
+# Codes we've already alerted on, so the poller doesn't re-notify every cycle.
+_alerted_grades = set()
+
+async def alert_unknown_grades(grades):
+    new = [g for g in grades if g not in _alerted_grades]
+    if not new or not DISCORD_WEBHOOK_URL:
+        return
+    _alerted_grades.update(new)
+    codes = ", ".join(repr(g) for g in new)
+    payload = {"content": f"unknown grade code(s) from carleton: {codes}"}
+    try:
+        async with httpx.AsyncClient() as client:
+            await client.post(DISCORD_WEBHOOK_URL, json=payload)
+    except Exception as e:
+        print(f"failed to send discord alert: {e}")
 
 from playwright.async_api import async_playwright, Playwright, expect
 
@@ -66,6 +88,7 @@ def parse_grades_page(html):
     all_tables = soup.find_all('td', class_="dddefault")
     courses = []
     student_program = {}
+    unknown_grades = set()
     header = True
     for i in range(0, len(all_tables), 11):
         chunk = all_tables[i:i+11]
@@ -99,7 +122,8 @@ def parse_grades_page(html):
                 "qualitypoints": chunk[10].get_text(strip=True)
             }
             if not GRADE_RE.match(course["finalgrade"]):
-                raise ValueError(f"unexpected finalgrade: {course['finalgrade']!r}")
+                unknown_grades.add(course["finalgrade"])
+                print(f"warning: unrecognized finalgrade {course['finalgrade']!r} for {course['subject']} {course['course']}")
             if course["crn"] and not course["crn"].isdigit():
                 raise ValueError(f"unexpected crn: {course['crn']!r}")
             courses.append(course)
@@ -112,7 +136,7 @@ def parse_grades_page(html):
             "studentname": student_name
     }
 
-    return student_name, student_number, student_info_dict, courses, student_program
+    return student_name, student_number, student_info_dict, courses, student_program, unknown_grades
 
 
 async def get_grades(cookies, term):
@@ -120,7 +144,8 @@ async def get_grades(cookies, term):
 
     async with httpx.AsyncClient(cookies=cookies_dict) as client:
         response = await client.post("https://central.carleton.ca/prod/bwskogrd.P_ViewGrde", data={"term_in": term})
-        student_name, student_number, student_info_dict, courses, student_program = parse_grades_page(response.text)
+        student_name, student_number, student_info_dict, courses, student_program, unknown_grades = parse_grades_page(response.text)
+        await alert_unknown_grades(unknown_grades)
         return student_name, student_number, student_info_dict, courses, student_program
 
 async def info(username, password):

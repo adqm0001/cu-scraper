@@ -74,7 +74,11 @@ async def read_root():
 @app.post("/register")
 @limiter.limit("10/hour")
 async def register(request: Request, req: RegisterRequest, background_tasks: BackgroundTasks):
-    result = await db_register(req.username, req.password, req.email)
+    try:
+        result = await db_register(req.username, req.password, req.email)
+    except Exception as e:
+        print(f"register failed for {req.username}: {type(e).__name__}: {e}")
+        raise HTTPException(status_code=502, detail="could not read grades from carleton")
     invalid_msg = "invalid credentials"
     userexists_msg = "username already exists"
     if result == "invalid credentials":
