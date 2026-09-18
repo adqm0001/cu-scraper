@@ -1,0 +1,384 @@
+.profile-page {
+  min-height: 100vh;
+  background: #000;
+  display: flex;
+  flex-direction: column;
+}
+.profile-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 48px;
+  border-bottom: 1px solid #1a1a1a;
+  background: #000;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.nav-logo {
+  font-size: 1.2rem;
+  font-weight: 700;
+  letter-spacing: 3px;
+  background: linear-gradient(90deg, #ff0000 0%, #ffffff 40%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  text-decoration: none;
+  cursor: pointer;
+}
+.profile-content {
+  flex: 1;
+  padding: 40px 48px;
+  max-width: 680px;
+  width: 100%;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.profile-heading {
+  font-size: 1.5rem;
+  font-weight: 700;
+  letter-spacing: 1px;
+  color: white;
+}
+.profile-card {
+  background: #111;
+  border: 1px solid #1e1e1e;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.profile-card-header {
+  padding: 16px 24px;
+  border-bottom: 1px solid #1a1a1a;
+}
+
+.profile-card-title {
+  font-size: 0.75rem;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: #555;
+  font-weight: 600;
+}
+
+.profile-card-body {
+  padding: 20px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.profile-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.profile-field-label {
+  font-size: 0.72rem;
+  letter-spacing: 1px;
+  color: #444;
+  text-transform: uppercase;
+}
+
+.profile-field-value {
+  font-size: 0.9rem;
+  color: #ccc;
+  background: #0d0d0d;
+  border: 1px solid #1e1e1e;
+  border-radius: 6px;
+  padding: 10px 14px;
+  font-family: 'Manrope', sans-serif;
+}
+
+.profile-field-hint {
+  font-size: 0.75rem;
+  color: #666;
+  line-height: 1.5;
+  margin-top: 2px;
+}
+.email-display-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.email-edit-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.email-edit-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.email-edit-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.profile-field-input {
+  flex: 1;
+  background: #0d0d0d;
+  border: 1px solid #333;
+  border-radius: 6px;
+  color: white;
+  padding: 10px 14px;
+  font-size: 0.9rem;
+  font-family: 'Manrope', sans-serif;
+  outline: none;
+  transition: border-color 0.15s;
+}
+
+.profile-field-input::placeholder {
+  color: #444;
+}
+
+.profile-field-input:focus {
+  border-color: #555;
+}
+
+.btn-edit {
+  padding: 6px 14px;
+  background: transparent;
+  color: #888;
+  border: 1px solid #2a2a2a;
+  border-radius: 5px;
+  font-size: 0.78rem;
+  font-family: 'Manrope', sans-serif;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: color 0.15s, border-color 0.15s;
+}
+
+.btn-edit:hover {
+  color: white;
+  border-color: #444;
+}
+
+.btn-save {
+  padding: 8px 16px;
+  background: white;
+  color: black;
+  border: none;
+  border-radius: 5px;
+  font-size: 0.85rem;
+  font-family: 'Manrope', sans-serif;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.15s;
+}
+
+.btn-save:hover:not(:disabled) {
+  background: #e0e0e0;
+}
+
+.btn-save:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.btn-cancel-inline {
+  padding: 8px 16px;
+  background: transparent;
+  color: white;
+  border: 1px solid #333;
+  border-radius: 5px;
+  font-size: 0.85rem;
+  font-family: 'Manrope', sans-serif;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: border-color 0.15s;
+}
+
+.btn-cancel-inline:hover {
+  border-color: #555;
+}
+.danger-card {
+  border-color: rgba(255, 50, 50, 0.15);
+}
+
+.danger-card .profile-card-header {
+  border-bottom-color: rgba(255, 50, 50, 0.1);
+}
+
+.danger-card .profile-card-title {
+  color: #aa3333;
+}
+
+.danger-description {
+  font-size: 0.85rem;
+  color: #666;
+  line-height: 1.6;
+}
+
+.btn-danger {
+  align-self: flex-start;
+  padding: 9px 20px;
+  background: transparent;
+  color: #ff4444;
+  border: 1px solid rgba(255, 50, 50, 0.35);
+  border-radius: 5px;
+  font-size: 0.85rem;
+  font-family: 'Manrope', sans-serif;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.btn-danger:hover {
+  background: rgba(255, 50, 50, 0.08);
+  border-color: rgba(255, 50, 50, 0.6);
+}
+.confirm-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.75);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 50;
+}
+
+.confirm-dialog {
+  background: #111;
+  border: 1px solid #2a2a2a;
+  border-radius: 12px;
+  padding: 32px;
+  max-width: 400px;
+  width: 90%;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.confirm-dialog h2 {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: white;
+}
+
+.confirm-dialog p {
+  font-size: 0.85rem;
+  color: #777;
+  line-height: 1.6;
+}
+
+.confirm-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+  margin-top: 8px;
+}
+
+.btn-cancel {
+  padding: 9px 20px;
+  background: transparent;
+  color: white;
+  border: 1px solid #333;
+  border-radius: 5px;
+  font-size: 0.85rem;
+  font-family: 'Manrope', sans-serif;
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color 0.15s;
+}
+
+.btn-cancel:hover {
+  border-color: #555;
+}
+
+.btn-confirm-delete {
+  padding: 9px 20px;
+  background: #cc2222;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  font-size: 0.85rem;
+  font-family: 'Manrope', sans-serif;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.btn-confirm-delete:hover:not(:disabled) {
+  background: #aa1a1a;
+}
+
+.btn-confirm-delete:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.notification-toast {
+  position: fixed;
+  bottom: 32px;
+  right: 32px;
+  background: #1a1a1a;
+  border: 1px solid #333;
+  color: white;
+  padding: 12px 20px;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  z-index: 100;
+  animation: fadeInUp 0.2s ease;
+}
+
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@media (max-width: 768px) {
+  .profile-nav {
+    padding: 16px 24px;
+  }
+
+  .profile-content {
+    padding: 28px 24px;
+  }
+}
+
+@media (max-width: 480px) {
+  .profile-content {
+    padding: 24px 16px;
+  }
+
+  .profile-card-body {
+    padding: 18px 16px;
+  }
+
+  .email-edit-row {
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .email-edit-row .profile-field-input {
+    flex: 1 1 100%;
+  }
+
+  .email-edit-row .btn-save,
+  .email-edit-row .btn-cancel-inline {
+    flex: 1;
+  }
+
+  .email-display-row {
+    flex-wrap: wrap;
+  }
+
+  .email-display-row .profile-field-value {
+    flex: 1 1 100%;
+    min-width: 0;
+    word-break: break-all;
+  }
+
+  .email-display-row .btn-edit {
+    margin-left: auto;
+  }
+}

@@ -1,0 +1,425 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML lang="en">
+<head>
+<!-- Global site tag (gtag.js) - Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-46978825-1"></script>
+<script>
+window.dataLayer = window.dataLayer || [];
+function gtag(){dataLayer.push(arguments);}
+gtag('js', new Date()); gtag('config', 'UA-46978825-1');
+</script>
+<META http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<LINK REL="stylesheet" HREF="/css/web_defaultapp.css" TYPE="text/css">
+<LINK REL="stylesheet" HREF="/css/web_defaultprint.css" TYPE="text/css" media="print">
+<title>Final Grades</title>
+<meta http-equiv="Content-Script-Type" name="Default_Script_Language" content="text/javascript">
+<SCRIPT LANGUAGE="JavaScript" TYPE="text/javascript">
+<!-- Hide JavaScript from older browsers
+window.onunload = function() {submitcount=0;}
+var submitcount=0;
+function checkSubmit() {
+if (submitcount == 0)
+{
+submitcount++;
+return true;
+}
+else
+{
+alert("Your changes have already been submitted.");
+return false;
+}
+}
+// End script hiding -->
+</SCRIPT>
+<SCRIPT LANGUAGE="JavaScript" TYPE="text/javascript">
+<!-- Hide JavaScript from older browsers
+// Function to open a window
+function windowOpen(window_url) {
+helpWin = window.open(window_url,'','toolbar=yes,status=no,scrollbars=yes,menubar=yes,resizable=yes,directories=no,location=no,width=350,height=400');
+if (document.images) {
+if (helpWin) helpWin.focus()
+}
+}
+// End script hiding -->
+</SCRIPT>
+</head>
+<body>
+<div class="headerwrapperdiv">
+<div class="pageheaderdiv1">
+<a href="#main_content" onMouseover="window.status='Go to Main Content'; return true" onMouseout="window.status=''; return true" OnFocus="window.status='Go to Main Content'; return true" onBlur="window.status=''; return true" class="skiplinks">Go to Main Content</a>
+<h1>Carleton Central</h1></DIV><div class="headerlinksdiv">
+<SPAN class="pageheaderlinks2">
+<map name="Module_Navigation_Links_H" title="Module Navigation Links">
+<p>
+<a href="#skip_Module_Navigation_Links_H" onMouseover="window.status='Skip Module Navigation Links'; return true" onMouseout="window.status=''; return true" onFocus="window.status='Skip Module Navigation Links'; return true" onBlur="window.status=''; return true" class="skiplinks">Skip Module Navigation Links</a>
+<table CLASS="plaintable" SUMMARY="This is main table for displaying Tab Items."
+WIDTH="100%" cellSpacing=0 cellPadding=0 border=0 role="navigation">
+<tr>
+<TD CLASS="pldefault">
+<table CLASS="plaintable" SUMMARY="This table displays Tab Items."
+cellSpacing=0 cellPadding=0 border=0>
+<tr>
+<td class="taboff" height=22>
+<a href="/prod/twbkwbis.P_GenMenu?name=bmenu.P_GenMnu" onMouseover="window.status='Personal Information'; return true" onMouseout="window.status=''; return true" onFocus="window.status='Personal Information'; return true" onBlur="window.status=''; return true" >Personal Information</a>
+</TD>
+<TD class="bgtaboff" height=22 vAlign="top" align="right">
+<img src="/wtlgifs/web_tab_corner_right.gif" alt="Tab Corner Right" CLASS="headerImg" TITLE="Tab Corner Right" NAME="web_tab_corner_right" HSPACE=0 VSPACE=0 BORDER=0 HEIGHT=20 WIDTH=8 />
+</TD>
+<td class="tabon" height=22>
+<a href="/prod/twbkwbis.P_GenMenu?name=bmenu.P_StuMainMnu" onMouseover="window.status='Student Services'; return true" onMouseout="window.status=''; return true" onFocus="window.status='Student Services'; return true" onBlur="window.status=''; return true" >Student Services</a>
+</TD>
+<TD class="bgtabon" height=22 vAlign="top" align="right">
+<img src="/wtlgifs/web_tab_corner_right.gif" alt="Tab Corner Right" CLASS="headerImg" TITLE="Tab Corner Right" NAME="web_tab_corner_right" HSPACE=0 VSPACE=0 BORDER=0 HEIGHT=20 WIDTH=8 />
+</TD>
+</tr>
+</table>
+</TD>
+</tr>
+<tr>
+<TD class="bgtabon" width="100%" colSpan=2><img src="/wtlgifs/web_transparent.gif" alt="Transparent Image" CLASS="headerImg" TITLE="Transparent Image" NAME="web_transparent" HSPACE=0 VSPACE=0 BORDER=0 HEIGHT=3 WIDTH=10 /></TD></tr></table>
+</map>
+</SPAN>
+<a name="skip_Module_Navigation_Links_H"></a>
+</DIV>
+<table CLASS="plaintable" SUMMARY="This table displays Menu Items and Banner Search textbox."
+WIDTH="100%" role="navigation">
+<tr>
+<TD CLASS="pldefault">
+<div class="headerlinksdiv2">
+</div>
+</TD>
+<TD CLASS="pldefault"><p class="rightaligntext" /p>
+<SPAN class="pageheaderlinks">
+<a href="/prod/twbksite.P_DispSiteMap?menu_name_in=bmenu.P_MainMnu&amp;depth_in=2&amp;columns_in=3" accesskey="2" class="submenulinktext2">SITE MAP</a>
+|
+<a href="/wtlhelp/ccfinalgrades.htm" accesskey="H" onClick="popup = window.open('/wtlhelp/ccfinalgrades.htm', 'PopupPage','height=500,width=450,scrollbars=yes,resizable=yes'); return false" target="_blank" onMouseOver="window.status=''; return true" onMouseOut="window.status=''; return true"onFocus="window.status=''; return true" onBlur="window.status=''; return true" class="submenulinktext2">HELP</a>
+|
+<a href="twbkwbis.P_Logout" accesskey="3" class="submenulinktext2">LOGOUT</a>
+</span>
+</TD>
+</tr>
+</table>
+</DIV>
+<div class="pagetitlediv">
+<table CLASS="plaintable" SUMMARY="This table displays title and static header displays." WIDTH="100%">
+<tr>
+<TD CLASS="pldefault">
+<h2>Final Grades</h2>
+</TD>
+<TD CLASS="pldefault">
+&nbsp;
+</TD>
+<TD CLASS="pldefault"><p class="rightaligntext" /p>
+<div class="staticheaders" role="complementary">
+100000000 John Doe<br>
+Fall 2025 (September-December)<br>
+Jul 18, 2026 10:54 pm<br>
+</div>
+</TD>
+</tr>
+<tr>
+<TD class="bg3" width="100%" colSpan=3><img src="/wtlgifs/web_transparent.gif" alt="Transparent Image" CLASS="headerImg" TITLE="Transparent Image" NAME="web_transparent" HSPACE=0 VSPACE=0 BORDER=0 HEIGHT=3 WIDTH=10 /></TD>
+</tr>
+</table>
+<a name="main_content"></a>
+</DIV>
+<div class="pagebodydiv" role="main">
+<!-- ** END OF twbkwbis.P_OpenDoc ** -->
+<div class="infotextdiv"><table CLASS="infotexttable" SUMMARY="This layout table contains information that may be helpful in understanding the content and functionality of this page. It could be a brief set of instructions, a description of error messages, or other special information." role="complementary"><tr><td CLASS="indefault"><img src="/wtlgifs/web_info_cascade.png" alt="Information" CLASS="headerImg" TITLE="Information" NAME="web_info" HSPACE=0 VSPACE=0 BORDER=0 HEIGHT=12 WIDTH=14 /></td><td CLASS="indefault"><SPAN class="infotext"> Below you will find your institutional grades for the term selected. Only the courses that have been graded will be displayed. <br>If a class does not appear on your list, your grade has yet to be submitted.<p>Please note: Non-institutional credits (e.g. transfers on admission, University of Ottawa Exchange grades, Carleton international exchange courses) will not be shown here.</SPAN></td></tr></table><p></DIV>
+<table CLASS="datadisplaytable" SUMMARY="This layout table contains the users curriculum information for the specified term."><caption class="captiontext">Student Information</caption>
+<tr>
+<th colspan="2" CLASS="ddlabel" scope="row" >Current Program</th>
+</tr>
+<tr>
+<td colspan="2" CLASS="dddefault">Bachelor of Engineering</td>
+</tr>
+<tr>
+<th colspan="1" CLASS="ddlabel" scope="row" >Level:</th>
+<td colspan="1" CLASS="dddefault">Undergraduate</td>
+</tr>
+<tr>
+<th colspan="1" CLASS="ddlabel" scope="row" >Program:</th>
+<td colspan="1" CLASS="dddefault">Software Engineering</td>
+</tr>
+<tr>
+<th colspan="1" CLASS="ddlabel" scope="row" >Admit Term:</th>
+<td colspan="1" CLASS="dddefault">Fall 2025 (September-December)</td>
+</tr>
+<tr>
+<th colspan="1" CLASS="ddlabel" scope="row" >Admit Type:</th>
+<td colspan="1" CLASS="dddefault">Current Ontario High School</td>
+</tr>
+<tr>
+<th colspan="1" CLASS="ddlabel" scope="row" >Catalog Term:</th>
+<td colspan="1" CLASS="dddefault">Fall 2025 (September-December)</td>
+</tr>
+<tr>
+<th colspan="1" CLASS="ddlabel" scope="row" >College:</th>
+<td colspan="1" CLASS="dddefault">Faculty:Engineering & Design</td>
+</tr>
+<tr>
+<th colspan="1" CLASS="ddlabel" scope="row" >Campus:</th>
+<td colspan="1" CLASS="dddefault">Main Campus</td>
+</tr>
+<tr>
+<th colspan="1" CLASS="ddlabel" scope="row" >Major:</th>
+<td colspan="1" CLASS="dddefault">Software Engineering</td>
+</tr>
+<tr>
+<th colspan="1" CLASS="ddlabel" scope="row" >Concentration:</th>
+<td colspan="1" CLASS="dddefault">Co-operative Option</td>
+</tr>
+<tr>
+<th CLASS="ddlabel" scope="row" >Academic Standing: </th>
+<td CLASS="dddefault">No Assessment</td>
+</tr>
+</table>
+<br />
+<table CLASS="datadisplaytable" SUMMARY="This table displays the final
+grade for a class as well as the associated term, course, section, campus,
+credits, course title, attempted hours, earned hours, grade point average,
+and quality points for a level."><caption class="captiontext">Undergraduate Course work</caption>
+<tr>
+<th CLASS="ddheader" scope="col" ><ACRONYM title = "Course Reference Number">CRN</ACRONYM></th>
+<th CLASS="ddheader" scope="col" >Subject</th>
+<th CLASS="ddheader" scope="col" >Course</th>
+<th CLASS="ddheader" scope="col" >Section</th>
+<th CLASS="ddheader" scope="col" >Course Title</th>
+<th CLASS="ddheader" scope="col" >Campus</th>
+<th CLASS="ddheader" scope="col" >Final Grade</th>
+<th CLASS="ddheader" scope="col" >Attempted</th>
+<th CLASS="ddheader" scope="col" >Earned</th>
+<th CLASS="ddheader" scope="col" ><p class="rightaligntext"><ACRONYM title = "Grade Point Average">GPA</ACRONYM> Hours</p></th>
+<th CLASS="ddheader" scope="col" ><p class="rightaligntext">Quality Points</p></th>
+<td CLASS="dddead">&nbsp;</td>
+</tr>
+<tr>
+<td CLASS="dddefault">30001</td>
+<td CLASS="dddefault">CHEM</td>
+<td CLASS="dddefault">1101</td>
+<td CLASS="dddefault">A</td>
+<td CLASS="dddefault">Chemistry for Engineering Students</td>
+<td CLASS="dddefault">Main Campus</td>
+<td CLASS="dddefault">A+</td>
+<td CLASS="dddefault"><p class="rightaligntext"> 0.500</p></td>
+<td CLASS="dddefault"><p class="rightaligntext"> 0.500</p></td>
+<td CLASS="dddefault"><p class="rightaligntext"> 0.500</p></td>
+<td CLASS="dddefault"><p class="rightaligntext"> 6.00</p></td>
+<td CLASS="dddead">&nbsp;</td>
+</tr>
+<tr>
+<td CLASS="dddefault">30002</td>
+<td CLASS="dddefault">CLCV</td>
+<td CLASS="dddefault">1008</td>
+<td CLASS="dddefault">A</td>
+<td CLASS="dddefault">Introduction to Archaeology I</td>
+<td CLASS="dddefault">Main Campus</td>
+<td CLASS="dddefault">A</td>
+<td CLASS="dddefault"><p class="rightaligntext"> 0.500</p></td>
+<td CLASS="dddefault"><p class="rightaligntext"> 0.500</p></td>
+<td CLASS="dddefault"><p class="rightaligntext"> 0.500</p></td>
+<td CLASS="dddefault"><p class="rightaligntext"> 5.50</p></td>
+<td CLASS="dddead">&nbsp;</td>
+</tr>
+<tr>
+<td CLASS="dddefault">30003</td>
+<td CLASS="dddefault">ECOR</td>
+<td CLASS="dddefault">1031</td>
+<td CLASS="dddefault">B</td>
+<td CLASS="dddefault">Programming and Data Management</td>
+<td CLASS="dddefault">Main Campus</td>
+<td CLASS="dddefault">A-</td>
+<td CLASS="dddefault"><p class="rightaligntext"> 0.500</p></td>
+<td CLASS="dddefault"><p class="rightaligntext"> 0.500</p></td>
+<td CLASS="dddefault"><p class="rightaligntext"> 0.500</p></td>
+<td CLASS="dddefault"><p class="rightaligntext"> 5.00</p></td>
+<td CLASS="dddead">&nbsp;</td>
+</tr>
+<tr>
+<td CLASS="dddefault">30004</td>
+<td CLASS="dddefault">ECOR</td>
+<td CLASS="dddefault">1032</td>
+<td CLASS="dddefault">C</td>
+<td CLASS="dddefault">Circuits and Mechatronics</td>
+<td CLASS="dddefault">Main Campus</td>
+<td CLASS="dddefault">B+</td>
+<td CLASS="dddefault"><p class="rightaligntext"> 0.500</p></td>
+<td CLASS="dddefault"><p class="rightaligntext"> 0.500</p></td>
+<td CLASS="dddefault"><p class="rightaligntext"> 0.500</p></td>
+<td CLASS="dddefault"><p class="rightaligntext"> 4.50</p></td>
+<td CLASS="dddead">&nbsp;</td>
+</tr>
+<tr>
+<td CLASS="dddefault">30005</td>
+<td CLASS="dddefault">ECOR</td>
+<td CLASS="dddefault">1055</td>
+<td CLASS="dddefault">B</td>
+<td CLASS="dddefault">Introduction to Engineering Disciplines I</td>
+<td CLASS="dddefault">Main Campus</td>
+<td CLASS="dddefault">B</td>
+<td CLASS="dddefault"><p class="rightaligntext"> 0.500</p></td>
+<td CLASS="dddefault"><p class="rightaligntext"> 0.500</p></td>
+<td CLASS="dddefault"><p class="rightaligntext"> 0.500</p></td>
+<td CLASS="dddefault"><p class="rightaligntext"> 4.00</p></td>
+<td CLASS="dddead">&nbsp;</td>
+</tr>
+<tr>
+<td CLASS="dddefault">30006</td>
+<td CLASS="dddefault">ECOR</td>
+<td CLASS="dddefault">1057</td>
+<td CLASS="dddefault">D</td>
+<td CLASS="dddefault">Engineering Profession</td>
+<td CLASS="dddefault">Main Campus</td>
+<td CLASS="dddefault">B-</td>
+<td CLASS="dddefault"><p class="rightaligntext"> 0.500</p></td>
+<td CLASS="dddefault"><p class="rightaligntext"> 0.500</p></td>
+<td CLASS="dddefault"><p class="rightaligntext"> 0.500</p></td>
+<td CLASS="dddefault"><p class="rightaligntext"> 3.50</p></td>
+<td CLASS="dddead">&nbsp;</td>
+</tr>
+<tr>
+<td CLASS="dddefault">30007</td>
+<td CLASS="dddefault">MATH</td>
+<td CLASS="dddefault">1004</td>
+<td CLASS="dddefault">D</td>
+<td CLASS="dddefault">Calculus for Engineering or Physics</td>
+<td CLASS="dddefault">Main Campus</td>
+<td CLASS="dddefault">C+</td>
+<td CLASS="dddefault"><p class="rightaligntext"> 0.500</p></td>
+<td CLASS="dddefault"><p class="rightaligntext"> 0.500</p></td>
+<td CLASS="dddefault"><p class="rightaligntext"> 0.500</p></td>
+<td CLASS="dddefault"><p class="rightaligntext"> 3.00</p></td>
+<td CLASS="dddead">&nbsp;</td>
+</tr>
+<tr>
+<td CLASS="dddefault">30008</td>
+<td CLASS="dddefault">PHYS</td>
+<td CLASS="dddefault">1003</td>
+<td CLASS="dddefault">A</td>
+<td CLASS="dddefault">Introductory Mechanics and Thermodynamics</td>
+<td CLASS="dddefault">Main Campus</td>
+<td CLASS="dddefault">C</td>
+<td CLASS="dddefault"><p class="rightaligntext"> 0.500</p></td>
+<td CLASS="dddefault"><p class="rightaligntext"> 0.500</p></td>
+<td CLASS="dddefault"><p class="rightaligntext"> 0.500</p></td>
+<td CLASS="dddefault"><p class="rightaligntext"> 2.50</p></td>
+<td CLASS="dddead">&nbsp;</td>
+</tr>
+<tr>
+<td CLASS="dddefault">30009</td>
+<td CLASS="dddefault">ECON</td>
+<td CLASS="dddefault">1000</td>
+<td CLASS="dddefault">A</td>
+<td CLASS="dddefault">Introduction to Economics</td>
+<td CLASS="dddefault">Main Campus</td>
+<td CLASS="dddefault">C-</td>
+<td CLASS="dddefault"><p class="rightaligntext"> 0.500</p></td>
+<td CLASS="dddefault"><p class="rightaligntext"> 0.500</p></td>
+<td CLASS="dddefault"><p class="rightaligntext"> 0.500</p></td>
+<td CLASS="dddefault"><p class="rightaligntext"> 2.00</p></td>
+<td CLASS="dddead">&nbsp;</td>
+</tr>
+<tr>
+<td CLASS="dddefault">30010</td>
+<td CLASS="dddefault">PSYC</td>
+<td CLASS="dddefault">1001</td>
+<td CLASS="dddefault">A</td>
+<td CLASS="dddefault">Introduction to Psychology I</td>
+<td CLASS="dddefault">Main Campus</td>
+<td CLASS="dddefault">D+</td>
+<td CLASS="dddefault"><p class="rightaligntext"> 0.500</p></td>
+<td CLASS="dddefault"><p class="rightaligntext"> 0.500</p></td>
+<td CLASS="dddefault"><p class="rightaligntext"> 0.500</p></td>
+<td CLASS="dddefault"><p class="rightaligntext"> 1.50</p></td>
+<td CLASS="dddead">&nbsp;</td>
+</tr>
+<tr>
+<td CLASS="dddefault">30011</td>
+<td CLASS="dddefault">HIST</td>
+<td CLASS="dddefault">1300</td>
+<td CLASS="dddefault">A</td>
+<td CLASS="dddefault">Modern World since 1919</td>
+<td CLASS="dddefault">Main Campus</td>
+<td CLASS="dddefault">D</td>
+<td CLASS="dddefault"><p class="rightaligntext"> 0.500</p></td>
+<td CLASS="dddefault"><p class="rightaligntext"> 0.500</p></td>
+<td CLASS="dddefault"><p class="rightaligntext"> 0.500</p></td>
+<td CLASS="dddefault"><p class="rightaligntext"> 1.00</p></td>
+<td CLASS="dddead">&nbsp;</td>
+</tr>
+<tr>
+<td CLASS="dddefault">30012</td>
+<td CLASS="dddefault">ENGL</td>
+<td CLASS="dddefault">1000</td>
+<td CLASS="dddefault">A</td>
+<td CLASS="dddefault">Literature, Genre, Context</td>
+<td CLASS="dddefault">Main Campus</td>
+<td CLASS="dddefault">D-</td>
+<td CLASS="dddefault"><p class="rightaligntext"> 0.500</p></td>
+<td CLASS="dddefault"><p class="rightaligntext"> 0.500</p></td>
+<td CLASS="dddefault"><p class="rightaligntext"> 0.500</p></td>
+<td CLASS="dddefault"><p class="rightaligntext"> 0.50</p></td>
+<td CLASS="dddead">&nbsp;</td>
+</tr>
+<tr>
+<td CLASS="dddefault">30013</td>
+<td CLASS="dddefault">PHIL</td>
+<td CLASS="dddefault">1200</td>
+<td CLASS="dddefault">A</td>
+<td CLASS="dddefault">Introduction to Philosophy</td>
+<td CLASS="dddefault">Main Campus</td>
+<td CLASS="dddefault">F</td>
+<td CLASS="dddefault"><p class="rightaligntext"> 0.500</p></td>
+<td CLASS="dddefault"><p class="rightaligntext"> 0.000</p></td>
+<td CLASS="dddefault"><p class="rightaligntext"> 0.500</p></td>
+<td CLASS="dddefault"><p class="rightaligntext"> 0.00</p></td>
+<td CLASS="dddead">&nbsp;</td>
+</tr>
+<tr>
+<td CLASS="dddefault">30014</td>
+<td CLASS="dddefault">ECOR</td>
+<td CLASS="dddefault">1053</td>
+<td CLASS="dddefault">A</td>
+<td CLASS="dddefault">Engineering Communication</td>
+<td CLASS="dddefault">Main Campus</td>
+<td CLASS="dddefault">SAT</td>
+<td CLASS="dddefault"><p class="rightaligntext"> 0.000</p></td>
+<td CLASS="dddefault"><p class="rightaligntext"> 0.000</p></td>
+<td CLASS="dddefault"><p class="rightaligntext"> 0.000</p></td>
+<td CLASS="dddefault"><p class="rightaligntext"> 0.00</p></td>
+<td CLASS="dddead">&nbsp;</td>
+</tr>
+</table>
+
+<!-- ** START OF twbkwbis.P_CloseDoc ** -->
+<table CLASS="plaintable" SUMMARY="This is table displays line separator at end of the page." WIDTH="100%" cellSpacing=0 cellPadding=0 border=0><tr><TD class="bgtabon" width="100%" colSpan=2><img src="/wtlgifs/web_transparent.gif" alt="Transparent Image" CLASS="headerImg" TITLE="Transparent Image" NAME="web_transparent" HSPACE=0 VSPACE=0 BORDER=0 HEIGHT=3 WIDTH=10 /></TD></tr></table>
+<a href="#top" onMouseover="window.status='Skip to top of page'; return true" onMouseout="window.status=''; return true" OnFocus="window.status='Skip to top of page'; return true" onBlur="window.status=''; return true" class="skiplinks">Skip to top of page</a>
+<a href="/prod/bwskogrd.P_ViewTermGrde" onMouseOver="window.status='Select another Term'; return true" onMouseOut="window.status=''; return true"onFocus="window.status='Select another Term'; return true" onBlur="window.status=''; return true">Select another Term</a>
+<p>&nbsp;
+</DIV>
+<div class="footerbeforediv">
+
+</DIV>
+<div class="footerafterdiv">
+
+</DIV>
+<div class="globalafterdiv">
+
+</DIV>
+<div class="globalfooterdiv">
+
+</DIV>
+<div class="pagefooterdiv" role="complementary">
+<SPAN class="releasetext">Release: 8.7.1</SPAN>
+</DIV>
+<div class="poweredbydiv">
+</DIV>
+<DIV class="div1"></DIV>
+<DIV class="div2"></DIV>
+<DIV class="div3"></DIV>
+<DIV class="div4"></DIV>
+<DIV class="div5"></DIV>
+<DIV class="div6"></DIV>
+<div class="banner_copyright"> <br><h5>© 2026 Ellucian Company L.P. and its affiliates.<br></h5></div>
+</body>
+</html>

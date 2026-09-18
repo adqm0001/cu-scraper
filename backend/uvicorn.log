@@ -1,0 +1,15 @@
+nohup: ignoring input
+INFO:     Started server process [18428]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
+INFO:     100.80.214.69:0 - "GET /grades HTTP/1.1" 200 OK
+INFO:     100.80.214.69:0 - "POST /login HTTP/1.1" 200 OK
+INFO:     100.80.214.69:0 - "GET /grades HTTP/1.1" 200 OK
+INFO:     198.235.24.47:59162 - "GET / HTTP/1.1" 200 OK
+INFO:     100.80.214.69:0 - "POST /login HTTP/1.1" 200 OK
+INFO:     100.80.214.69:0 - "GET /grades HTTP/1.1" 200 OK
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [18428]

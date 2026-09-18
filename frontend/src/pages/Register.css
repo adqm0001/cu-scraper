@@ -1,0 +1,172 @@
+.register-page {
+  display: flex;
+  width: 100%;
+  min-height: 100vh;
+}
+
+.register-left {
+  flex: 1;
+  background: linear-gradient(135deg, #0a0a0a 0%, #2a0a0a 100%);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 60px;
+}
+
+.register-left h2 {
+  font-size: 2rem;
+  letter-spacing: 3px;
+  margin-bottom: 16px;
+  color: #cc2a2a;
+  background: linear-gradient(90deg, #ff0000 0%, #ffffff 40%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.register-left p {
+  color: #888;
+  line-height: 1.6;
+  max-width: 400px;
+}
+
+.register-right {
+  flex: 1;
+  background: #111;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.register-component {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+}
+
+.register-left, .register-right {
+  flex: 0 0 50%;
+}
+
+.register-component h1 {
+  font-size: 2rem;
+  letter-spacing: 4px;
+  margin-bottom: 32px;
+}
+
+.username-section, .password-section, .email-section {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: 300px;
+  margin-bottom: 16px;
+}
+
+.input-wrapper {
+  display: flex;
+  flex-direction: row;
+  gap: 6px;
+}
+
+.username-section input, .email-section input, .input-wrapper input {
+  background: #111;
+  border: 1px solid #333;
+  border-radius: 5px;
+  color: white;
+  padding: 8px 12px;
+  outline: none;
+}
+
+.input-wrapper input {
+  width: 100%;
+}
+
+.input-wrapper button {
+  background: #111;
+  color: white;
+  padding: 0 10px;
+  border: 1px solid #333;
+  border-radius: 5px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.input-wrapper button:hover {
+  border-color: #555;
+}
+
+.error-msg {
+  width: 300px;
+  font-size: 0.8rem;
+  color: #ff6b6b;
+  background: rgba(255, 50, 50, 0.08);
+  border: 1px solid rgba(255, 50, 50, 0.25);
+  border-radius: 6px;
+  padding: 10px 12px;
+  text-align: center;
+  margin-bottom: 12px;
+}
+
+.signupbutton {
+  width: 300px;
+  padding: 10px;
+  background: white;
+  color: black;
+  border: none;
+  border-radius: 5px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  margin-bottom: 8px;
+}
+
+.loginpage {
+  width: 300px;
+  padding: 10px;
+  background: transparent;
+  color: white;
+  border: 1px solid #333;
+  border-radius: 5px;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+.signupbutton:hover:not(:disabled) {
+  background: #e0e0e0;
+  cursor: pointer;
+}
+
+.signupbutton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.loginpage:hover {
+  border-color: #555;
+  cursor: pointer;
+}
+
+@media (max-width: 768px) {
+  .register-page {
+    flex-direction: column;
+  }
+
+  .register-left, .register-right {
+    flex: 1 1 50%;
+    width: 100%;
+  }
+}
+
+@media (max-width: 400px) {
+  .register-component {
+    width: 100%;
+    padding: 20px;
+  }
+
+  .username-section, .password-section, .email-section,
+  .signupbutton, .loginpage, .error-msg {
+    width: 100%;
+  }
+}
