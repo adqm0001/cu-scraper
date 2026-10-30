@@ -51,14 +51,32 @@ export function About() {
               <figure className="about-email">
                 <figcaption><Mail size={16} /><span>Example grade update</span><span className="about-example-tag">SAMPLE</span></figcaption>
                 <div className="about-email-meta"><span>To</span><span>you@example.com</span><span>Subject</span><strong>CU Scraper - Grade Update</strong></div>
-                <pre>{`Hi there,
-
-There are new grades on Carleton Central.
-Here’s what changed:
-
-Fall 2024
-ECOR 1031    A
-MATH 1007    A+`}</pre>
+                <div className="about-email-preview">
+                  <div className="about-email-brand">CU Scraper</div>
+                  <div className="about-email-body">
+                    <p>Hi there,</p>
+                    <p>There are new grades on Carleton Central. Here’s what changed:</p>
+                    <table className="about-email-grades" aria-label="Sample grade changes">
+                      <tbody>
+                        <tr><th colSpan={2} scope="colgroup">Fall 2025</th></tr>
+                        <tr><td>ECOR 1031</td><td>A</td></tr>
+                        <tr><td>MATH 1007</td><td>A+</td></tr>
+                      </tbody>
+                      <tbody>
+                        <tr><th colSpan={2} scope="colgroup">Winter 2026</th></tr>
+                        <tr><td>ECOR 1042</td><td>A-</td></tr>
+                      </tbody>
+                    </table>
+                    <Link className="about-email-dashboard" to="/app/dashboard">Open your dashboard <ArrowUpRight size={15} aria-hidden="true" /></Link>
+                    <p className="about-email-note">You can confirm these grades on Carleton Central.</p>
+                  </div>
+                  <div className="about-email-footer">
+                    <p>Sent to the notification email on your CU Scraper account.</p>
+                    <span>Change notification email</span>
+                    <span>Unsubscribe from grade updates</span>
+                    <p>Independent project. Not affiliated with Carleton University.</p>
+                  </div>
+                </div>
               </figure>
               <p>The app also sends a welcome message when you register. Changing your notification email sends a notice to your old address and a subscription confirmation to your new one. Deleting your account sends a final confirmation email.</p>
             </section>

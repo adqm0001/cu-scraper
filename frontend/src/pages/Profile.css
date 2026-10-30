@@ -28,7 +28,7 @@
 .profile-field-input { min-width: 0; width: 100%; flex: 1; padding: 12px 13px; background: #171719; border: 1px solid #3b3b41; border-radius: 5px; color: #fff; font: inherit; font-size: .9375rem; outline: none; }
 .profile-field-input::placeholder { color: #aaaab3; }
 .profile-field-input:focus-visible { border-color: #a9a9b1; outline: 2px solid #c8102e; outline-offset: 3px; }
-.profile-page .btn-save, .profile-page .btn-cancel-inline, .profile-page .btn-cancel, .profile-page .btn-confirm-delete, .profile-page .btn-danger { padding: 11px 20px; border-radius: 6px; font-size: 1rem; font-weight: 600; line-height: 1.5; cursor: pointer; white-space: nowrap; }
+.profile-page .btn-save, .profile-page .btn-cancel-inline, .profile-page .btn-cancel, .profile-page .btn-confirm-delete, .profile-page .btn-danger { padding: 11px 20px; border-radius: 8px; font-size: 1rem; font-weight: 600; line-height: 1.5; cursor: pointer; white-space: nowrap; }
 .profile-page .btn-save, .profile-page .btn-confirm-delete { background: #c8102e; color: #fff; border: 1px solid #c8102e; transition: background .15s, border-color .15s; }
 .profile-page .btn-save:hover:not(:disabled), .profile-page .btn-confirm-delete:hover:not(:disabled) { background: #ae0e28; border-color: #ae0e28; }
 .profile-page .btn-save:active:not(:disabled), .profile-page .btn-confirm-delete:active:not(:disabled) { background: #970c23; border-color: #970c23; }

@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router';
 import { useAuthContext } from '../context/AuthContext.tsx';
 import { isTimeout, QUICK_TIMEOUT, SCRAPE_TIMEOUT, DEMO_RESTRICTED_MSG } from '../utils/errors.ts';
-import { ArrowUpRight, LogOut, ShieldCheck } from 'lucide-react';
+import { ArrowLeft, LogOut, ShieldCheck } from 'lucide-react';
 import './Dashboard.css';
 import './Profile.css';
 
@@ -211,7 +211,7 @@ export function Profile() {
           <span>CU Scraper<span className="dashboard-brand-caption">CARLETON GRADE TRACKER</span></span>
         </a>
         <nav className="dashboard-links" aria-label="Main navigation">
-          <button onClick={() => navigate('/app/dashboard')}>Overview <ArrowUpRight size={14} /></button>
+          <button onClick={() => navigate('/app/dashboard')}><ArrowLeft size={16} aria-hidden="true" />Overview</button>
           <span className="dashboard-current" aria-current="page">Account</span>
           <button className="dashboard-logout" onClick={logOut}><LogOut size={15} /><span>Log out</span></button>
         </nav>

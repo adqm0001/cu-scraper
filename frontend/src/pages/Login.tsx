@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import { Link, Navigate, useNavigate } from 'react-router';
 import {useAuthContext} from '../context/AuthContext.tsx'
 import { getAuthErrorMessage, isTimeout, QUICK_TIMEOUT } from '../utils/errors.ts'
-import { ArrowLeft, Eye, EyeOff } from 'lucide-react';
+import { ArrowLeft, ArrowUpRight, Eye, EyeOff } from 'lucide-react';
 import { PublicShell, AuthIntroduction } from '../components/PublicShell.tsx';
 import { readTokenClaims, isTokenUsable } from '../utils/session.ts';
 
@@ -115,7 +115,7 @@ export function Login(){
             <button className="public-primary auth-submit" disabled={loading} type="submit">{loading ? 'Signing in...' : 'Sign in'}</button>
           </form>
           <p className="auth-switch">New to CU Scraper? <button type="button" onClick={redirectRegisterPage}>Create an account</button></p>
-          <div className="auth-demo"><span>Want to have a look first?</span><button onClick={() => navigate('/demo')}>Explore the demo <span aria-hidden="true">↗</span></button></div>
+          <div className="auth-demo"><span>Want to have a look first?</span><button onClick={() => navigate('/demo')}>Explore the demo <ArrowUpRight size={15} aria-hidden="true" /></button></div>
         </section>
       </main>
     </PublicShell>

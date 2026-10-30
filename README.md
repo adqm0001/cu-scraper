@@ -15,10 +15,16 @@ The demo uses sample data and is read only. Password and email changes, account 
 ## What it does
 
 * Create an account and log in
-* See all your grades in one place, grouped by term, with your cumulative GPA, total credits, quality points and term count
-* Search your courses by code (like ECOR 1031) or by name
-* Get an email whenever a grade changes
-* Change which email gets those notifications, or delete your account, from the profile page (both actions ask for your password again so a stolen session alone isn't enough)
+* See your grades grouped by term, with your cumulative GPA, total credits, course count and term count
+* Search your courses by code (like ECOR 1031 or ECOR1031) or by name
+* Refresh your grades from the dashboard, or leave automatic checks running in the background
+* Get a formatted email when grades change, grouped by term if more than one semester has updates
+* Change which email gets notifications from Account. The old address gets a notice and the new one gets a confirmation
+* Update your saved Carleton password if you change it at Carleton, without creating a new account
+* Pause grade emails and automatic checks from Account, or use the unsubscribe link in a grade email. You can turn them back on later and still refresh manually while they're paused
+* Delete your account and its stored data. Email changes and account deletion both ask for your password again
+
+The pages share a dark theme with Carleton's red, black and white, and work on mobile too. There's also an About page explaining how checks work, what gets stored and how notifications are handled.
 
 ## How it works
 
@@ -26,7 +32,13 @@ Logging in is the hard part. Carleton Central uses single sign on, so to put it 
 
 Doing this with plain HTTP requests would be extremely hard, and if the website updates it would break, so it wasn't worth the effort. I ended up opting to use a headless browser to go through the real login with the Python Playwright library, and grab the session cookies once it's through. Using those cookies, I hit the grade pages directly with normal HTTP requests, then pull the grades out of the HTML with the BeautifulSoup Python library.
 
-The checking runs on its own in the background. A poller goes through every user, scrapes their grades again, and compares them to what's already saved. If something's different, it fires off the email. The scraper also sanity checks the shape of what it pulled out of the page, so if Carleton quietly changes their HTML the poller notices instead of silently saving garbage. If the same user keeps failing, a Discord webhook pings me so I can go look.
+The checking runs on its own in the background. About every 30 minutes, a poller goes through users who have grade emails enabled, scrapes their grades again, and compares them to what's already saved. If something's different, it queues an email with the updated courses grouped by term. The email also has links to the dashboard, notification settings and an unsubscribe confirmation page. A plain text version is included for email apps that need it.
+
+Grade emails stay in a database queue until they're sent or stop being eligible for delivery. Failed sends are retried, so a temporary email issue doesn't lose the notification as soon as the saved grades are updated. Turning off grade emails also cancels pending grade notifications.
+
+The scraper also sanity checks the shape of what it pulled out of the page, so if Carleton changes their HTML the poller notices instead of saving incorrect data. If the same user keeps failing, a Discord webhook pings me so I can go look.
+
+If you change your password at Carleton, you can still sign into CU Scraper with the password it last had saved. In Account, enter your new Carleton password. The app checks it through Carleton before updating the saved credentials and the password you use to sign into CU Scraper. This doesn't change your password at Carleton itself.
 
 ## Tech
 
@@ -36,7 +48,7 @@ The frontend is React and TypeScript on Vite, with React Router handling the pag
 
 ## Running it locally
 
-You'll need Python 3.11 or newer, Node 18 or newer, and a PostgreSQL database.
+You'll need Python 3.11 or newer, Node 22.12 or newer, and a PostgreSQL database with the app's tables set up.
 
 ### Backend
 
@@ -58,10 +70,13 @@ JWT_EXPIRE_MINUTES=60
 FERNET_KEY=your fernet key
 GOOGLE_EMAIL=the gmail address that sends notifications
 GOOGLE_PASSWORD=a gmail app password for that account
+FRONTEND_URL=http://localhost:5173
 DISCORD_WEBHOOK_URL=optional, a discord webhook to ping when a user's scrape keeps failing
 TRUSTED_HOSTS=comma separated hostnames the backend accepts (e.g. localhost,192.0.2.1)
 CORS_ORIGINS=comma separated frontend origins allowed to call the backend (e.g. https://example.com), leave empty in dev
 ```
+
+Set `FRONTEND_URL` to your frontend address so links in emails point to the right site. For local development, that's normally `http://localhost:5173`. In production, use your public frontend URL.
 
 Then start the API and the poller (they run as two separate processes):
 
@@ -105,7 +120,9 @@ GitHub Actions runs the same suite on every push and pull request.
 
 Your Carleton password and email never get stored in plain text. They're encrypted with Fernet, and the password for the app itself is hashed with bcrypt. Changing your notification email or deleting your account both require typing your password again, so a stolen token on its own can't quietly hijack where the alerts go or wipe your data. The production frontend build also ships a Content Security Policy so that scripts can only run from places I trust and the page can't quietly send data somewhere it shouldn't. Anything sensitive like the `.env` files and keys stays out of the repo.
 
-If you delete your account, your data is gone from the database for good, the stored credentials and the full grade history. I don't keep a copy of any of it.
+If you delete your account, its stored credentials, notification email, course records and grade history are removed from the database. This doesn't delete your real Carleton account or remove emails already delivered to your inbox. Existing server logs aren't erased by account deletion.
+
+Turning off grade emails keeps your account and saved grades. It pauses automatic checks and grade notifications, but account messages like email-change and deletion confirmations can still be sent.
 
 ## A word of caution
 
