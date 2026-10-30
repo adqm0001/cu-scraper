@@ -20,12 +20,21 @@ export function Profile() {
   const [deleteCurrentPassword, setDeleteCurrentPassword] = useState('');
   const [deleting, setDeleting] = useState(false);
   const [notification, setNotification] = useState('');
+  const [isDemo, setIsDemo] = useState(false);
   const notificationTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   function showNotification(msg: string) {
     if (notificationTimeout.current) clearTimeout(notificationTimeout.current);
     setNotification(msg);
     notificationTimeout.current = setTimeout(() => setNotification(''), 3000);
+  }
+
+  function guardDemo(action: () => void) {
+    if (isDemo) {
+      showNotification(DEMO_RESTRICTED_MSG);
+      return;
+    }
+    action();
   }
 
   function logOut() {
@@ -46,6 +55,7 @@ export function Profile() {
         const data = await response.json();
         setUsername(data.username);
         setEmail(data.email);
+        setIsDemo(data.is_demo === true);
       } catch (err) {
         showNotification(isTimeout(err) ? 'Loading your profile timed out. Please refresh.' : 'Failed to load your profile. Please refresh.');
       }
@@ -216,7 +226,7 @@ export function Profile() {
               ) : (
                 <div className="email-display-row">
                   <span className="profile-field-value">{email || '—'}</span>
-                  <button className="btn-edit" onClick={() => setEditingEmail(true)}>Change</button>
+                  <button className="btn-edit" onClick={() => guardDemo(() => setEditingEmail(true))}>Change</button>
                 </div>
               )}
             </div>
@@ -244,7 +254,7 @@ export function Profile() {
               ) : (
                 <div className="email-display-row">
                   <span className="profile-field-value">••••••••</span>
-                  <button className="btn-edit" onClick={() => setEditingPassword(true)}>Change</button>
+                  <button className="btn-edit" onClick={() => guardDemo(() => setEditingPassword(true))}>Change</button>
                 </div>
               )}
               {editingPassword && (
@@ -278,7 +288,7 @@ export function Profile() {
             <p className="danger-description">
               Permanently delete your CU Scraper account and all associated data, including your stored credentials and grade history. This does not affect your real Carleton University account and cannot be undone.
             </p>
-            <button className="btn-danger" onClick={() => setShowConfirm(true)}>
+            <button className="btn-danger" onClick={() => guardDemo(() => setShowConfirm(true))}>
               Delete Account
             </button>
           </div>
