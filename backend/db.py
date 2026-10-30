@@ -198,7 +198,7 @@ async def check_changes(user_id: str, fresh_courses: dict):
         await delete_course(user_id, term, crn)
     return changes
 
-async def update_grades(user_id: str, courses: dict):
+async def update_grades(user_id: str, courses: dict, notification: tuple[str, str, str] | None = None):
     async with await psycopg.AsyncConnection.connect(db) as conn:
         async with conn.cursor() as cur:
 
@@ -230,7 +230,62 @@ async def update_grades(user_id: str, courses: dict):
                         qualitypoints = EXCLUDED.qualitypoints
                     """, (term_id, course["crn"], course["subject"], course["course"], course["section"], course["coursetitle"], enc_grade, enc_attempted, enc_earned, enc_gpahours, enc_qualitypoints))
 
+            if notification:
+                recipient, subject, body = notification
+                await cur.execute(
+                    "INSERT INTO email_outbox (user_id, recipient, subject, body) VALUES (%s, %s, %s, %s)",
+                    (user_id, fernet.encrypt(recipient.encode()).decode(), fernet.encrypt(subject.encode()).decode(), fernet.encrypt(body.encode()).decode()),
+                )
+
         await conn.commit()
+
+async def get_due_emails(limit: int = 20):
+    async with await psycopg.AsyncConnection.connect(db) as conn:
+        async with conn.cursor() as cur:
+            await cur.execute("""
+                SELECT id, user_id, recipient, subject, body, attempts
+                FROM email_outbox
+                WHERE sent_at IS NULL AND failed_at IS NULL AND next_attempt_at <= NOW()
+                ORDER BY id
+                LIMIT %s
+                """, (limit,))
+            rows = await cur.fetchall()
+    return [
+        {
+            "id": row[0],
+            "user_id": row[1],
+            "recipient": fernet.decrypt(row[2].encode()).decode(),
+            "subject": fernet.decrypt(row[3].encode()).decode(),
+            "body": fernet.decrypt(row[4].encode()).decode(),
+            "attempts": row[5],
+        }
+        for row in rows
+    ]
+
+async def mark_email_sent(email_id: int):
+    async with await psycopg.AsyncConnection.connect(db) as conn:
+        async with conn.cursor() as cur:
+            await cur.execute("UPDATE email_outbox SET sent_at = NOW(), attempts = attempts + 1 WHERE id = %s", (email_id,))
+            await conn.commit()
+
+async def mark_email_retry(email_id: int, delay_seconds: int, error: str):
+    async with await psycopg.AsyncConnection.connect(db) as conn:
+        async with conn.cursor() as cur:
+            await cur.execute("""
+                UPDATE email_outbox
+                SET attempts = attempts + 1, last_error = %s, next_attempt_at = NOW() + make_interval(secs => %s)
+                WHERE id = %s
+                """, (error, delay_seconds, email_id))
+            await conn.commit()
+
+async def mark_email_failed(email_id: int, error: str):
+    async with await psycopg.AsyncConnection.connect(db) as conn:
+        async with conn.cursor() as cur:
+            await cur.execute(
+                "UPDATE email_outbox SET attempts = attempts + 1, last_error = %s, failed_at = NOW() WHERE id = %s",
+                (error, email_id),
+            )
+            await conn.commit()
 
 async def update_email(user_id: str, new_email: str):
     enc_email = fernet.encrypt(new_email.encode()).decode()

@@ -2,13 +2,16 @@ import smtplib
 from dotenv import load_dotenv
 import os
 from email.mime.text import MIMEText
-from db import get_users, check_changes, update_grades, update_last_checked
+from db import get_users, check_changes, update_grades, update_last_checked, get_due_emails, mark_email_sent, mark_email_retry, mark_email_failed
 from cu_scraper import info
 import asyncio
 import httpx
 load_dotenv()
 
 DISCORD_WEBHOOK_URL = os.getenv("DISCORD_WEBHOOK_URL")
+SMTP_TIMEOUT_SECONDS = 20
+EMAIL_RETRY_DELAYS = [60, 300, 900, 3600, 10800]
+OUTBOX_INTERVAL_SECONDS = 60
 
 
 def build_welcome_email(username: str) -> tuple[str, str]:
@@ -70,7 +73,7 @@ def send_email(to: str, subject: str, body: str) -> None:
     msg["From"] = sender
     msg["To"] = to
 
-    with smtplib.SMTP_SSL("smtp.gmail.com", 465) as smtp_server:
+    with smtplib.SMTP_SSL("smtp.gmail.com", 465, timeout=SMTP_TIMEOUT_SECONDS) as smtp_server:
         smtp_server.login(sender, password)
         smtp_server.sendmail(sender, to, msg.as_string())
 
@@ -80,11 +83,6 @@ def send_welcome_email(email, username):
     send_email(email, subject, body)
     print("Welcome message sent!")
 
-
-def send_grade_change_email(email, changes):
-    subject, body = build_grade_change_email(changes)
-    send_email(email, subject, body)
-    print("Grades update email sent!")
 
 
 def send_email_changed_old(old_email, username):
@@ -117,9 +115,45 @@ async def scrape_user(user, sem):
         _,_,_,_, fresh_courses,_ = result
     changes = await check_changes(user_id, fresh_courses)
     if changes:
-        send_grade_change_email(email, changes)
-        await update_grades(user_id, changes)
+        await update_grades(user_id, changes, notification=(email, *build_grade_change_email(changes)))
     await update_last_checked(user_id)
+
+def retry_delay(attempts_before_failure: int) -> int | None:
+    if attempts_before_failure < len(EMAIL_RETRY_DELAYS):
+        return EMAIL_RETRY_DELAYS[attempts_before_failure]
+    return None
+
+async def alert_discord(text: str) -> None:
+    if not DISCORD_WEBHOOK_URL:
+        return
+    try:
+        async with httpx.AsyncClient() as client:
+            await client.post(DISCORD_WEBHOOK_URL, json={"content": text})
+    except Exception as e:
+        print(f"failed to send discord alert: {e!r}")
+
+async def deliver_pending_emails() -> None:
+    for email in await get_due_emails():
+        try:
+            await asyncio.to_thread(send_email, email["recipient"], email["subject"], email["body"])
+        except Exception as e:
+            error = type(e).__name__
+            delay = retry_delay(email["attempts"])
+            if delay is None:
+                await mark_email_failed(email["id"], error)
+                await alert_discord(f"email {email['id']} for user {email['user_id']} gave up after {email['attempts'] + 1} attempts: {error}")
+            else:
+                await mark_email_retry(email["id"], delay, error)
+        else:
+            await mark_email_sent(email["id"])
+
+async def outbox_loop() -> None:
+    while True:
+        try:
+            await deliver_pending_emails()
+        except Exception as e:
+            print(f"outbox delivery failed: {e!r}")
+        await asyncio.sleep(OUTBOX_INTERVAL_SECONDS)
 
 sem = asyncio.Semaphore(3)
 async def poll():
@@ -132,15 +166,16 @@ async def poll():
                 failed.append(user)
         if failed:
             results = await asyncio.gather(*[scrape_user(user, sem) for user in failed], return_exceptions=True)
-            async with httpx.AsyncClient() as client:
-                for user, r in zip(failed, results):
-                    if isinstance(r, Exception):
-                        payload = {"content": f"{user['username']}: {type(r).__name__}"}
-                        await client.post(DISCORD_WEBHOOK_URL, json=payload)
-                        print(f"scrape failed for {user['username']}: {r!r}")
+            for user, r in zip(failed, results):
+                if isinstance(r, Exception):
+                    await alert_discord(f"{user['username']}: {type(r).__name__}")
+                    print(f"scrape failed for {user['username']}: {r!r}")
 
 
         await asyncio.sleep(1800)
 
+async def main():
+    await asyncio.gather(poll(), outbox_loop())
+
 if __name__ == "__main__":
-    asyncio.run(poll())
+    asyncio.run(main())

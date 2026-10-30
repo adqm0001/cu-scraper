@@ -4,7 +4,7 @@ from cu_scraper import info
 from db import register as db_register, fetch_and_store_grades, get_user, get_grades as db_get_grades, delete_user as db_delete_user, check_changes, update_grades
 from db import get_user_credentials, update_email as db_update_email, update_password as db_update_password, verify_user_password, get_demo_user_id
 import os
-from poller import send_welcome_email, send_goodbye_email, send_grade_change_email, send_email_changed_old, send_email_changed_new
+from poller import send_welcome_email, send_goodbye_email, build_grade_change_email, send_email_changed_old, send_email_changed_new
 from fastapi import BackgroundTasks, FastAPI, HTTPException, Depends, Request
 from jose import jwt
 from jose.exceptions import JWTError
@@ -149,8 +149,7 @@ async def check_grades(request: Request, user_id: Annotated[str, Depends(get_cur
     _,_,_,_, fresh_courses, _ = result 
     changes = await check_changes(user_id, fresh_courses)
     if changes:
-        send_grade_change_email(user_creds["email"], changes)
-        await update_grades(user_id, changes)
+        await update_grades(user_id, changes, notification=(user_creds["email"], *build_grade_change_email(changes)))
 
     await fetch_and_store_grades(user_id, result)
     
