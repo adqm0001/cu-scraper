@@ -122,7 +122,7 @@ async def demo(request: Request):
     if user_id is None:
         raise HTTPException(status_code=404, detail="demo unavailable")
     token = jwt.encode(
-            {"sub": str(user_id), "exp": datetime.now(timezone.utc) + timedelta(minutes=JWT_EXPIRE_MINUTES)},
+            {"sub": str(user_id), "demo": True, "exp": datetime.now(timezone.utc) + timedelta(minutes=JWT_EXPIRE_MINUTES)},
             JWT_SECRET,
             algorithm="HS256"
     )

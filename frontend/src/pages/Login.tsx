@@ -1,9 +1,10 @@
 import { useState, useEffect, useRef } from 'react'
-import { Link, useNavigate } from 'react-router';
+import { Link, Navigate, useNavigate } from 'react-router';
 import {useAuthContext} from '../context/AuthContext.tsx'
 import { getAuthErrorMessage, isTimeout, QUICK_TIMEOUT } from '../utils/errors.ts'
 import { ArrowLeft, Eye, EyeOff } from 'lucide-react';
 import { PublicShell, AuthIntroduction } from '../components/PublicShell.tsx';
+import { readTokenClaims, isTokenUsable } from '../utils/session.ts';
 
 export function Login(){
   const [username, setUsername] = useState('')
@@ -11,12 +12,14 @@ export function Login(){
   const [errorMessage, setErrorMessage] = useState('')
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  const [sessionIsDemo, setSessionIsDemo] = useState(false);
   const errorTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
   const mounted = useRef(true);
 
   const {token, setToken} = useAuthContext();
   const navigate = useNavigate();
+  const claims = token ? readTokenClaims(token) : null;
+  const sessionUsable = isTokenUsable(claims);
+  const sessionIsDemo = sessionUsable && claims?.demo === true;
 
   function displayErrorMsg(msg: string){
    if (errorTimeout.current) clearTimeout(errorTimeout.current);
@@ -33,35 +36,11 @@ export function Login(){
   }, []);
 
   useEffect(() => {
-    if (!token) return;
-    let active = true;
-    async function checkSession() {
-      try {
-        const response = await fetch(`${import.meta.env.VITE_API_URL}/users/me`, {
-          headers: { Authorization: `Bearer ${token}` },
-          signal: AbortSignal.timeout(QUICK_TIMEOUT),
-        });
-        if (!active) return;
-        if (response.status === 401) {
-          localStorage.removeItem('token');
-          setToken('');
-          return;
-        }
-        if (!response.ok) return;
-        const data = await response.json();
-        if (!active) return;
-        if (data.is_demo === true) {
-          setSessionIsDemo(true);
-        } else {
-          navigate('/app/dashboard', { replace: true });
-        }
-      } catch {
-        return;
-      }
+    if (token && !sessionUsable) {
+      localStorage.removeItem('token');
+      setToken('');
     }
-    checkSession();
-    return () => { active = false; };
-  }, [token, navigate, setToken]);
+  }, [token, sessionUsable, setToken]);
 
   async function handleSignIn(){
     if (loading) return;
@@ -105,6 +84,10 @@ export function Login(){
 
   function redirectRegisterPage(){
     navigate("/register");
+  }
+
+  if (sessionUsable && !sessionIsDemo) {
+    return <Navigate to="/app/dashboard" replace />;
   }
 
   return (

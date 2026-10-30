@@ -22,6 +22,7 @@ export function Dashboard(){
   const [loading, setLoading] = useState(false);
   const [notification, setNotification] = useState('');
   const [isDemo, setIsDemo] = useState(false);
+  const [demoCheckedAt] = useState(() => new Date().toISOString());
   const notificationTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const navigate = useNavigate();
@@ -119,8 +120,9 @@ export function Dashboard(){
   }, []);
 
   const formatLastUpdated = () => {
-    if (!lastUpdated) return '—';
-    return new Date(lastUpdated).toLocaleString(undefined, {
+    const timestamp = isDemo ? demoCheckedAt : lastUpdated;
+    if (!timestamp) return '—';
+    return new Date(timestamp).toLocaleString(undefined, {
       month: 'short', day: 'numeric', year: 'numeric',
       hour: '2-digit', minute: '2-digit',
     });

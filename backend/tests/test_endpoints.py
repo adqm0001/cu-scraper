@@ -1,4 +1,5 @@
 import bcrypt
+from jose import jwt
 
 
 FAKE_INFO = ("John Doe", "100000000", {}, {}, {"202530": []}, [])
@@ -250,7 +251,9 @@ def test_demo_issues_session_token(client, monkeypatch, async_mock):
     response = client.post("/demo")
 
     assert response.status_code == 200
-    assert "accessToken" in response.json()
+    claims = jwt.get_unverified_claims(response.json()["accessToken"])
+    assert claims["sub"] == "42"
+    assert claims["demo"] is True
 
 
 def test_demo_unavailable_without_demo_account(client, monkeypatch, async_mock):
