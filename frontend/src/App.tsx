@@ -2,6 +2,7 @@ import { Login } from './pages/Login.tsx'
 import { Register } from './pages/Register.tsx'
 import { Dashboard } from './pages/Dashboard.tsx'
 import { Profile } from './pages/Profile.tsx'
+import { NotFound } from './pages/NotFound.tsx'
 import { AuthProvider } from './context/AuthContext.tsx'
 import { ProtectedLayout } from './layouts/ProtectedLayout.tsx'
 import { BrowserRouter, Routes, Route } from 'react-router';
@@ -24,6 +25,7 @@ function App() {
               <Route path="dashboard" element={<Dashboard />} />
               <Route path="profile" element={<Profile />} />
           </Route>
+          <Route path="*" element={<NotFound />} />
         </Routes>
       </AuthProvider>
     </BrowserRouter>
