@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
-import { useNavigate } from 'react-router';
+import { Link, useNavigate } from 'react-router';
 import { type Course } from '../utils/Course.ts';
 import { TermCard } from '../components/TermCard.tsx';
 import { useAuthContext } from '../context/AuthContext.tsx'
@@ -204,7 +204,7 @@ export function Dashboard(){
             {grades === null ? <p className="dashboard-empty">Loading your academic record…</p> : filteredEntries.length === 0 ? <p className="dashboard-empty">No courses match “{searching}”. Try a course code or name.</p> : filteredEntries.map(({ termCode, courses, allCourses }) => <TermCard key={termCode} termCode={termCode} courses={courses} allCourses={allCourses} />)}
           </div>
         </section>
-        <footer className="dashboard-footer"><span>CU Scraper</span><span>Independent project. Not affiliated with Carleton University.</span></footer>
+        <footer className="dashboard-footer"><div className="public-footer-links"><span>CU Scraper</span><Link to="/about">About & privacy</Link></div><span>Independent project. Not affiliated with Carleton University.</span></footer>
       </main>
       {notification && <div className="notification-toast" role="status">{notification}</div>}
     </div>

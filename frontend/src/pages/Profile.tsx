@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { useNavigate } from 'react-router';
+import { Link, useNavigate } from 'react-router';
 import { useAuthContext } from '../context/AuthContext.tsx';
 import { isTimeout, QUICK_TIMEOUT, SCRAPE_TIMEOUT, DEMO_RESTRICTED_MSG } from '../utils/errors.ts';
 import { ArrowUpRight, LogOut, ShieldCheck } from 'lucide-react';
@@ -309,7 +309,7 @@ export function Profile() {
             </button>
           </div>
         </div>
-        <footer className="dashboard-footer"><span>CU Scraper</span><span>Independent project. Not affiliated with Carleton University.</span></footer>
+        <footer className="dashboard-footer"><div className="public-footer-links"><span>CU Scraper</span><Link to="/about">About & privacy</Link></div><span>Independent project. Not affiliated with Carleton University.</span></footer>
       </main>
 
       {showConfirm && (

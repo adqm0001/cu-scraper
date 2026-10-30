@@ -1,22 +1,19 @@
-import { useNavigate } from 'react-router';
+import { Link } from 'react-router';
+import { ArrowLeft } from 'lucide-react';
 import { useAuthContext } from '../context/AuthContext.tsx';
-import './NotFound.css';
+import { PublicShell } from '../components/PublicShell.tsx';
 
 export function NotFound() {
   const { token } = useAuthContext();
-  const navigate = useNavigate();
-
   return (
-    <div className="notfound-page">
-      <h1 className="notfound-code">404</h1>
-      <p className="notfound-title">Page not found</p>
-      <p className="notfound-text">The page you're looking for doesn't exist or was moved.</p>
-      <button
-        className="notfound-btn"
-        onClick={() => navigate(token ? '/app/dashboard' : '/login', { replace: true })}
-      >
-        {token ? 'Back to dashboard' : 'Back to login'}
-      </button>
-    </div>
+    <PublicShell>
+      <main className="public-state">
+        <p className="public-eyebrow">PAGE NOT FOUND</p>
+        <div className="public-status-code" aria-hidden="true">404<span>.</span></div>
+        <h1>This page isn’t here.</h1>
+        <p>The link may be incorrect, or the page may have moved.</p>
+        <Link className="public-primary" to={token ? '/app/dashboard' : '/login'} replace><ArrowLeft size={15} />{token ? 'Back to dashboard' : 'Back to sign in'}</Link>
+      </main>
+    </PublicShell>
   );
 }

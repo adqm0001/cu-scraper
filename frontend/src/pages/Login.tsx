@@ -1,9 +1,9 @@
 import { useState, useEffect, useRef } from 'react'
-import { useNavigate } from 'react-router';
+import { Link, useNavigate } from 'react-router';
 import {useAuthContext} from '../context/AuthContext.tsx'
 import { getAuthErrorMessage, isTimeout, QUICK_TIMEOUT } from '../utils/errors.ts'
-import { Eye, EyeOff } from 'lucide-react';
-import './Login.css'
+import { ArrowLeft, Eye, EyeOff } from 'lucide-react';
+import { PublicShell, AuthIntroduction } from '../components/PublicShell.tsx';
 
 export function Login(){
   const [username, setUsername] = useState('')
@@ -11,6 +11,7 @@ export function Login(){
   const [errorMessage, setErrorMessage] = useState('')
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [sessionIsDemo, setSessionIsDemo] = useState(false);
   const errorTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
   const mounted = useRef(true);
 
@@ -25,23 +26,51 @@ export function Login(){
 
   useEffect(() => {
     mounted.current = true;
-    if (token){
-      navigate('/app/dashboard', { replace: true});
-    }
     return () => {
       mounted.current = false;
       if (errorTimeout.current) clearTimeout(errorTimeout.current);
     };
   }, []);
 
+  useEffect(() => {
+    if (!token) return;
+    let active = true;
+    async function checkSession() {
+      try {
+        const response = await fetch(`${import.meta.env.VITE_API_URL}/users/me`, {
+          headers: { Authorization: `Bearer ${token}` },
+          signal: AbortSignal.timeout(QUICK_TIMEOUT),
+        });
+        if (!active) return;
+        if (response.status === 401) {
+          localStorage.removeItem('token');
+          setToken('');
+          return;
+        }
+        if (!response.ok) return;
+        const data = await response.json();
+        if (!active) return;
+        if (data.is_demo === true) {
+          setSessionIsDemo(true);
+        } else {
+          navigate('/app/dashboard', { replace: true });
+        }
+      } catch {
+        return;
+      }
+    }
+    checkSession();
+    return () => { active = false; };
+  }, [token, navigate, setToken]);
+
   async function handleSignIn(){
     if (loading) return;
     if (!username){
-      displayErrorMsg('Username cannot be empty!')
+      displayErrorMsg('Please enter your Carleton username.')
       return;
     }
     if (!password){
-      displayErrorMsg('Password cannot be empty!');
+      displayErrorMsg('Please enter your password.');
       return;
     }
     setLoading(true);
@@ -78,34 +107,34 @@ export function Login(){
     navigate("/register");
   }
 
-  return(
-    <div className="login-page">
-      <div className="login-left">
-        <h2>Cu Scraper</h2>
-        <p>Your grades, monitored automatically. We store your Carleton credentials securely using AES-128 encryption and are not affiliated with Carleton University.</p>
-      </div>
-      <div className="login-right">
-        <div className="login-component">
-          <div className="login-title">
-            <h1>Login</h1>
-          </div>
-          <div className="username-section">
-            <label>Username</label>
-            <input value={username} onChange={v => setUsername(v.target.value)} onKeyDown={e => e.key === 'Enter' && handleSignIn()}/>
-          </div>
-          <div className="password-section">
-            <label>Password</label>
-            <div className="input-wrapper">
-              <input type={showPassword ? "text" : "password"} value={password} onChange={v => setPassword(v.target.value)} onKeyDown={e => e.key === 'Enter' && handleSignIn()}/>
-              <button type="button" className="view-password" onClick={toggleShowPassword}>{showPassword ? <EyeOff size={16} /> : <Eye size={16} />}</button>
+  return (
+    <PublicShell>
+      <main className="auth-layout">
+        <AuthIntroduction />
+        <section className="auth-form-section" aria-labelledby="login-title">
+          {token && <Link className="auth-session-link" to="/app/dashboard"><ArrowLeft size={14} />{sessionIsDemo ? 'Back to demo' : 'Back to dashboard'}</Link>}
+          <p className="public-eyebrow">WELCOME BACK</p>
+          <h1 id="login-title">Sign in.</h1>
+          <p className="auth-form-description">Use your CU Scraper account to view your grades.</p>
+          <form onSubmit={e => { e.preventDefault(); handleSignIn(); }} aria-busy={loading}>
+            <div className="auth-field">
+              <label htmlFor="login-username">Carleton username</label>
+              <input id="login-username" autoComplete="username" autoCapitalize="none" spellCheck={false} value={username} onChange={e => setUsername(e.target.value)} placeholder="Your Carleton username" />
             </div>
-          </div>
-          {errorMessage && <p className="error-msg">{errorMessage}</p>}
-            <button className="signinbutton" disabled={loading} onClick={handleSignIn}>{loading ? 'Signing in...' : 'Sign in'}</button>
-            <button className="registerpage" onClick={redirectRegisterPage}>Create an account</button>
-            <button className="demo-link" onClick={() => navigate('/demo')}>Try the demo</button>
-        </div>
-      </div>
-    </div>
-  )
+            <div className="auth-field">
+              <label htmlFor="login-password">Password</label>
+              <div className="auth-password">
+                <input id="login-password" type={showPassword ? 'text' : 'password'} autoComplete="current-password" value={password} onChange={e => setPassword(e.target.value)} placeholder="Your password" />
+                <button type="button" onClick={toggleShowPassword} aria-label={showPassword ? 'Hide password' : 'Show password'} aria-pressed={showPassword}>{showPassword ? <EyeOff size={17} /> : <Eye size={17} />}</button>
+              </div>
+            </div>
+            {errorMessage && <p className="public-alert" role="alert">{errorMessage}</p>}
+            <button className="public-primary auth-submit" disabled={loading} type="submit">{loading ? 'Signing in...' : 'Sign in'}</button>
+          </form>
+          <p className="auth-switch">New to CU Scraper? <button type="button" onClick={redirectRegisterPage}>Create an account</button></p>
+          <div className="auth-demo"><span>Want to have a look first?</span><button onClick={() => navigate('/demo')}>Explore the demo <span aria-hidden="true">↗</span></button></div>
+        </section>
+      </main>
+    </PublicShell>
+  );
 }
