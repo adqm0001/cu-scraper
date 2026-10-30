@@ -4,13 +4,14 @@ import './TermCard.css';
 interface TermProps {
   termCode: string;
   courses: Course[];
+  allCourses: Course[];
 }
 
-export function TermCard({ termCode, courses }: TermProps) {
+export function TermCard({ termCode, courses, allCourses }: TermProps) {
   function calcTermGpa(): number | null {
     let totalQP = 0;
     let totalGH = 0;
-    courses.forEach(c => {
+    allCourses.forEach(c => {
       totalQP += Number(c.qualitypoints);
       totalGH += Number(c.gpahours);
     });

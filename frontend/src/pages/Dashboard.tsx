@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router';
 import { type Course } from '../utils/Course.ts';
 import { TermCard } from '../components/TermCard.tsx';
 import { useAuthContext } from '../context/AuthContext.tsx'
-import { isTimeout, QUICK_TIMEOUT, SCRAPE_TIMEOUT } from '../utils/errors.ts'
+import { isTimeout, QUICK_TIMEOUT, SCRAPE_TIMEOUT, DEMO_RESTRICTED_MSG } from '../utils/errors.ts'
 import './Dashboard.css'
 
 interface GradesData {
@@ -21,6 +21,7 @@ export function Dashboard(){
   const [lastUpdated, setLastUpdated] = useState('');
   const [loading, setLoading] = useState(false);
   const [notification, setNotification] = useState('');
+  const [isDemo, setIsDemo] = useState(false);
   const notificationTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const navigate = useNavigate();
@@ -58,11 +59,14 @@ export function Dashboard(){
   async function handleRefresh() {
     setLoading(true);
     try {
-      await fetch(`${import.meta.env.VITE_API_URL}/grades/check`, {
+      const check = await fetch(`${import.meta.env.VITE_API_URL}/grades/check`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         signal: AbortSignal.timeout(SCRAPE_TIMEOUT),
       });
+      if (check.status === 401) { logOut(); return; }
+      if (check.status === 403) { showNotification(DEMO_RESTRICTED_MSG); return; }
+      if (!check.ok) { showNotification('Failed to refresh grades. Please try again.'); return; }
       const response = await fetch(`${import.meta.env.VITE_API_URL}/grades`, {
         method: 'GET',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
@@ -98,7 +102,19 @@ export function Dashboard(){
         showNotification(isTimeout(err) ? 'Loading grades timed out. Please refresh.' : 'Failed to load grades. Please refresh.');
       }
     }
+    async function fetchDemoFlag() {
+      try {
+        const response = await fetch(`${import.meta.env.VITE_API_URL}/users/me`, {
+          headers: { Authorization: `Bearer ${token}` },
+          signal: AbortSignal.timeout(QUICK_TIMEOUT),
+        });
+        if (response.ok) setIsDemo((await response.json()).is_demo === true);
+      } catch {
+        setIsDemo(false);
+      }
+    }
     fetchGrades();
+    fetchDemoFlag();
     return () => { if (notificationTimeout.current) clearTimeout(notificationTimeout.current); };
   }, []);
 
@@ -113,6 +129,7 @@ export function Dashboard(){
   const filteredEntries = grades
     ? Object.entries(grades).map(([termCode, courses]) => ({
         termCode,
+        allCourses: courses,
         courses: courses.filter(c => {
           const q = searching.toLowerCase();
           if (!q) return true;
@@ -136,6 +153,12 @@ export function Dashboard(){
       </nav>
 
       <main className="dashboard-content">
+        {isDemo && (
+          <div className="demo-banner">
+            <span className="demo-banner-tag">Demo Mode</span>
+            Sample data. Account changes and grade refresh are disabled.
+          </div>
+        )}
         <div className="stats-row">
           <div className="stat-card">
             <span className="stat-label">Cumulative GPA</span>
@@ -169,11 +192,11 @@ export function Dashboard(){
           <div className="search-toggle">
             <button
               className={`toggle-btn ${searchMode === 'code' ? 'active' : ''}`}
-              onClick={() => { setSearchMode('code'); setSearching(''); }}
+              onClick={() => setSearchMode('code')}
             >Code</button>
             <button
               className={`toggle-btn ${searchMode === 'name' ? 'active' : ''}`}
-              onClick={() => { setSearchMode('name'); setSearching(''); }}
+              onClick={() => setSearchMode('name')}
             >Name</button>
           </div>
         </div>
@@ -184,8 +207,8 @@ export function Dashboard(){
           ) : filteredEntries.length === 0 ? (
             <p className="empty-state">No courses found.</p>
           ) : (
-            filteredEntries.map(({ termCode, courses }) => (
-              <TermCard key={termCode} termCode={termCode} courses={courses} />
+            filteredEntries.map(({ termCode, courses, allCourses }) => (
+              <TermCard key={termCode} termCode={termCode} courses={courses} allCourses={allCourses} />
             ))
           )}
         </div>

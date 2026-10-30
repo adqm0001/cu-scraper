@@ -260,3 +260,24 @@
   }
 
 }
+
+.demo-banner {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 16px;
+  border: 1px solid rgba(255, 50, 50, 0.2);
+  background: rgba(255, 50, 50, 0.06);
+  border-radius: 8px;
+  color: #aaa;
+  font-size: 0.85rem;
+}
+
+.demo-banner-tag {
+  color: #ff6b6b;
+  font-weight: 700;
+  font-size: 0.72rem;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  white-space: nowrap;
+}

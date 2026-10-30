@@ -173,3 +173,19 @@
   }
 }
 
+
+.demo-link {
+  margin-top: 16px;
+  background: none;
+  border: none;
+  color: #888;
+  font-family: 'Manrope', sans-serif;
+  font-size: 0.85rem;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.demo-link:hover {
+  color: white;
+}

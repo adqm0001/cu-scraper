@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router';
 import { useAuthContext } from '../context/AuthContext.tsx';
-import { isTimeout, QUICK_TIMEOUT, SCRAPE_TIMEOUT } from '../utils/errors.ts';
+import { isTimeout, QUICK_TIMEOUT, SCRAPE_TIMEOUT, DEMO_RESTRICTED_MSG } from '../utils/errors.ts';
 import './Profile.css';
 
 export function Profile() {
@@ -70,6 +70,9 @@ export function Profile() {
         setEmailCurrentPassword('');
         setEditingEmail(false);
         showNotification('Email updated');
+      } else if (response.status === 403) {
+        handleCancelEmail();
+        showNotification(DEMO_RESTRICTED_MSG);
       } else if (response.status === 401) {
         showNotification('Incorrect password.');
       } else {
@@ -102,6 +105,9 @@ export function Profile() {
         setNewPassword('');
         setEditingPassword(false);
         showNotification('Carleton password updated');
+      } else if (response.status === 403) {
+        handleCancelPassword();
+        showNotification(DEMO_RESTRICTED_MSG);
       } else if (response.status === 401) {
         showNotification('Could not verify that password with Carleton. Double-check it.');
       } else {
@@ -131,6 +137,10 @@ export function Profile() {
       });
       if (response.ok) {
         logOut();
+      } else if (response.status === 403) {
+        setShowConfirm(false);
+        setDeleteCurrentPassword('');
+        showNotification(DEMO_RESTRICTED_MSG);
       } else if (response.status === 401) {
         showNotification('Incorrect password.');
       } else {

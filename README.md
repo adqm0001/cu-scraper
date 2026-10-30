@@ -8,12 +8,9 @@ This is a personal project and it is not affiliated with Carleton University in 
 
 ## Try it out 
 
-A read-only demo account is available so you can explore the UI without needing a real Carleton login:
+You can explore the app without a Carleton login at [cu-scraper.vercel.app/demo](https://cu-scraper.vercel.app/demo), or with the "Try the demo" button on the login page.
 
-* Username: `__test_user__`
-* Password: `test_pX52Q1bIB5Ns-bJ5`
-
-This account uses seeded sample data. Password/email changes, account deletion, and live grade checks are disabled for it.
+The demo uses sample data and is read only. Password and email changes, account deletion, and live grade checks are disabled for it.
 
 ## What it does
 

@@ -3,6 +3,7 @@ import { Register } from './pages/Register.tsx'
 import { Dashboard } from './pages/Dashboard.tsx'
 import { Profile } from './pages/Profile.tsx'
 import { NotFound } from './pages/NotFound.tsx'
+import { Demo } from './pages/Demo.tsx'
 import { AuthProvider } from './context/AuthContext.tsx'
 import { ProtectedLayout } from './layouts/ProtectedLayout.tsx'
 import { BrowserRouter, Routes, Route } from 'react-router';
@@ -21,6 +22,7 @@ function App() {
             <Route path="login" element={<Login />} />
             <Route path="register" element={<Register />} />
           </Route>
+          <Route path="demo" element={<Demo />} />
           <Route path="app" element={<ProtectedLayout />}>
               <Route path="dashboard" element={<Dashboard />} />
               <Route path="profile" element={<Profile />} />

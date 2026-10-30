@@ -2,7 +2,7 @@ from dotenv import load_dotenv
 from datetime import datetime, timedelta
 from cu_scraper import info
 from db import register as db_register, fetch_and_store_grades, get_user, get_grades as db_get_grades, delete_user as db_delete_user, check_changes, update_grades
-from db import get_user_credentials, update_email as db_update_email, update_password as db_update_password, verify_user_password
+from db import get_user_credentials, update_email as db_update_email, update_password as db_update_password, verify_user_password, get_demo_user_id
 import os
 from poller import send_welcome_email, send_goodbye_email, send_grade_change_email, send_email_changed_old, send_email_changed_new
 from fastapi import BackgroundTasks, FastAPI, HTTPException, Depends, Request
@@ -25,6 +25,8 @@ assert JWT_SECRET, "JWT_SECRET missing"
 JWT_EXPIRE_MINUTES = int(os.getenv("JWT_EXPIRE_MINUTES") or 60)
 TRUSTED_HOSTS = [h.strip() for h in os.getenv("TRUSTED_HOSTS", "").split(",") if h.strip()]
 CORS_ORIGINS = [o.strip() for o in os.getenv("CORS_ORIGINS", "").split(",") if o.strip()]
+DEMO_USERNAME = os.getenv("DEMO_USERNAME", "__test_user__")
+DEMO_FORBIDDEN = "demo account cannot be modified"
 
 limiter = Limiter(key_func=get_remote_address)
 app = FastAPI(docs_url=None, redoc_url=None, openapi_url=None)
@@ -113,6 +115,19 @@ async def login(request: Request, req: LoginRequest):
         )
         return {"accessToken": token}
 
+@app.post("/demo")
+@limiter.limit("10/minute")
+async def demo(request: Request):
+    user_id = await get_demo_user_id(DEMO_USERNAME)
+    if user_id is None:
+        raise HTTPException(status_code=404, detail="demo unavailable")
+    token = jwt.encode(
+            {"sub": str(user_id), "exp": datetime.now(timezone.utc) + timedelta(minutes=JWT_EXPIRE_MINUTES)},
+            JWT_SECRET,
+            algorithm="HS256"
+    )
+    return {"accessToken": token}
+
 @app.get("/grades")
 async def get_grades(user_id: Annotated[str, Depends(get_current_user_id)]):
     grades, last_updated = await db_get_grades(user_id)
@@ -126,7 +141,7 @@ async def check_grades(request: Request, user_id: Annotated[str, Depends(get_cur
     if user_creds == "user_id not found":
         raise HTTPException(status_code=404, detail="user not found")
     if user_creds["is_test"]:
-        raise HTTPException(status_code=403, detail="demo account cannot be modified")
+        raise HTTPException(status_code=403, detail=DEMO_FORBIDDEN)
     result = await info(user_creds["username"], user_creds["password"])
     if result is None:
         return "invalid credentials"
@@ -147,19 +162,19 @@ async def get_me(user_id: Annotated[str, Depends(get_current_user_id)]):
     if user == "user_id not found":
         raise HTTPException(status_code=404, detail="user not found")
 
-    return {"username": user["username"], "email": user["email"]}
+    return {"username": user["username"], "email": user["email"], "is_demo": user["is_test"]}
 
 @app.patch("/users/me/email")
 @limiter.limit("5/minute")
 async def update_email(request: Request, req: UpdateEmailRequest, background_tasks: BackgroundTasks, user_id: Annotated[str, Depends(get_current_user_id)]):
-    if not await verify_user_password(user_id, req.current_password):
-        raise HTTPException(status_code=401, detail="invalid credentials")
-
     user = await get_user_credentials(user_id)
     if user == "user_id not found":
         raise HTTPException(status_code=404, detail="user not found")
     if user["is_test"]:
-        raise HTTPException(status_code=403, detail="demo account cannot be modified")
+        raise HTTPException(status_code=403, detail=DEMO_FORBIDDEN)
+
+    if not await verify_user_password(user_id, req.current_password):
+        raise HTTPException(status_code=401, detail="invalid credentials")
 
     old_email = user["email"]
     username = user["username"]
@@ -175,7 +190,7 @@ async def update_password(request: Request, req: UpdatePasswordRequest, user_id:
     if user == "user_id not found":
         raise HTTPException(status_code=404, detail="user not found")
     if user["is_test"]:
-        raise HTTPException(status_code=403, detail="demo account cannot be modified")
+        raise HTTPException(status_code=403, detail=DEMO_FORBIDDEN)
 
     result = await info(user["username"], req.password)
     if result is None:
@@ -186,15 +201,14 @@ async def update_password(request: Request, req: UpdatePasswordRequest, user_id:
 
 @app.delete("/users/me")
 async def delete_user(req: DeleteAccountRequest, background_tasks: BackgroundTasks, user_id: Annotated[str, Depends(get_current_user_id)]):
-    if not await verify_user_password(user_id, req.current_password):
-        raise HTTPException(status_code=401, detail="invalid credentials")
-
     user_creds = await get_user_credentials(user_id)
     if user_creds == "user_id not found":
         raise HTTPException(status_code=404, detail="user not found")
-
     if user_creds["is_test"]:
-        raise HTTPException(status_code=403, detail="demo account cannot be modified")
+        raise HTTPException(status_code=403, detail=DEMO_FORBIDDEN)
+
+    if not await verify_user_password(user_id, req.current_password):
+        raise HTTPException(status_code=401, detail="invalid credentials")
 
     username = user_creds["username"]
 

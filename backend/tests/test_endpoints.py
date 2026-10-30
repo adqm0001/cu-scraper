@@ -103,14 +103,14 @@ def test_get_me_returns_username_and_email_only(client, monkeypatch, as_user, as
     as_user("1")
     monkeypatch.setattr(
         "server.get_user_credentials",
-        async_mock({"username": "jdoe", "password": "SECRET", "email": "j@example.com"}),
+        async_mock({"username": "jdoe", "password": "SECRET", "email": "j@example.com", "is_test": False}),
     )
 
     response = client.get("/users/me", headers={"Authorization": "Bearer x"})
 
     assert response.status_code == 200
     body = response.json()
-    assert body == {"username": "jdoe", "email": "j@example.com"}
+    assert body == {"username": "jdoe", "email": "j@example.com", "is_demo": False}
     assert "password" not in body
 
 
@@ -140,8 +140,13 @@ def test_update_email_success(client, monkeypatch, as_user, async_mock):
     assert response.json() == {"success": True}
 
 
+REAL_USER = {"username": "jdoe", "password": "pw", "email": "j@example.com", "is_test": False}
+DEMO_USER = {"username": "__test_user__", "password": "pw", "email": "demo@example.com", "is_test": True}
+
+
 def test_update_email_wrong_password(client, monkeypatch, as_user, async_mock):
     as_user("1")
+    monkeypatch.setattr("server.get_user_credentials", async_mock(REAL_USER))
     monkeypatch.setattr("server.verify_user_password", async_mock(False))
 
     response = client.patch(
@@ -211,6 +216,7 @@ def test_delete_user_success(client, monkeypatch, as_user, async_mock):
 
 def test_delete_user_wrong_password(client, monkeypatch, as_user, async_mock):
     as_user("1")
+    monkeypatch.setattr("server.get_user_credentials", async_mock(REAL_USER))
     monkeypatch.setattr("server.verify_user_password", async_mock(False))
 
     response = client.request(
@@ -233,6 +239,70 @@ def test_update_password_rejects_test_account(client, monkeypatch, as_user, asyn
         "/users/me/password",
         headers={"Authorization": "Bearer x"},
         json={"password": "newpw"},
+    )
+
+    assert response.status_code == 403
+
+
+def test_demo_issues_session_token(client, monkeypatch, async_mock):
+    monkeypatch.setattr("server.get_demo_user_id", async_mock(42))
+
+    response = client.post("/demo")
+
+    assert response.status_code == 200
+    assert "accessToken" in response.json()
+
+
+def test_demo_unavailable_without_demo_account(client, monkeypatch, async_mock):
+    monkeypatch.setattr("server.get_demo_user_id", async_mock(None))
+
+    response = client.post("/demo")
+
+    assert response.status_code == 404
+
+
+def test_get_me_flags_demo_account(client, monkeypatch, as_user, async_mock):
+    as_user("1")
+    monkeypatch.setattr("server.get_user_credentials", async_mock(DEMO_USER))
+
+    response = client.get("/users/me", headers={"Authorization": "Bearer x"})
+
+    assert response.json()["is_demo"] is True
+
+
+def test_grade_check_rejects_demo_account(client, monkeypatch, as_user, async_mock):
+    as_user("1")
+    monkeypatch.setattr("server.get_user_credentials", async_mock(DEMO_USER))
+
+    response = client.post("/grades/check", headers={"Authorization": "Bearer x"})
+
+    assert response.status_code == 403
+
+
+def test_update_email_rejects_demo_before_password_check(client, monkeypatch, as_user, async_mock):
+    as_user("1")
+    monkeypatch.setattr("server.get_user_credentials", async_mock(DEMO_USER))
+    monkeypatch.setattr("server.verify_user_password", async_mock(False))
+
+    response = client.patch(
+        "/users/me/email",
+        headers={"Authorization": "Bearer x"},
+        json={"email": "new@example.com", "current_password": "anything"},
+    )
+
+    assert response.status_code == 403
+
+
+def test_delete_rejects_demo_before_password_check(client, monkeypatch, as_user, async_mock):
+    as_user("1")
+    monkeypatch.setattr("server.get_user_credentials", async_mock(DEMO_USER))
+    monkeypatch.setattr("server.verify_user_password", async_mock(False))
+
+    response = client.request(
+        "DELETE",
+        "/users/me",
+        headers={"Authorization": "Bearer x"},
+        json={"current_password": "anything"},
     )
 
     assert response.status_code == 403

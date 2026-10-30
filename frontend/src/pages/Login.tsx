@@ -103,6 +103,7 @@ export function Login(){
           {errorMessage && <p className="error-msg">{errorMessage}</p>}
             <button className="signinbutton" disabled={loading} onClick={handleSignIn}>{loading ? 'Signing in...' : 'Sign in'}</button>
             <button className="registerpage" onClick={redirectRegisterPage}>Create an account</button>
+            <button className="demo-link" onClick={() => navigate('/demo')}>Try the demo</button>
         </div>
       </div>
     </div>

@@ -40,3 +40,5 @@ export function getAuthErrorMessage(
       return 'Something went wrong. Please try again.';
   }
 }
+
+export const DEMO_RESTRICTED_MSG = 'This action is disabled in demo mode.';

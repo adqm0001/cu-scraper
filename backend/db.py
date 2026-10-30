@@ -263,6 +263,13 @@ async def get_user(username: str):
                 return "username not found"
             return {"user_id": row[0], "hashed_password": row[1]}
 
+async def get_demo_user_id(username: str):
+    async with await psycopg.AsyncConnection.connect(db) as conn:
+        async with conn.cursor() as cur:
+            await cur.execute("SELECT user_id FROM users WHERE username = %s AND is_test = true", (username,))
+            row = await cur.fetchone()
+            return row[0] if row else None
+
 async def verify_user_password(user_id: str, plaintext: str) -> bool:
     async with await psycopg.AsyncConnection.connect(db) as conn:
         async with conn.cursor() as cur:
