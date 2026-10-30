@@ -4,6 +4,7 @@ from dotenv import load_dotenv
 import os
 from cryptography.fernet import Fernet
 import bcrypt
+from datetime import datetime, timezone
 load_dotenv()
 
 key = os.getenv("FERNET_KEY")
@@ -147,9 +148,16 @@ async def get_grades(user_id: str, term_code=None):
             row = await cur.fetchone()
             if row is None:
                 raise Exception("Last updated update failed!")
-            last_updated = row[0].isoformat()
+            last_updated = to_utc_iso(row[0])
 
             return grades, last_updated
+
+def to_utc_iso(value: datetime | None) -> str | None:
+    if value is None:
+        return None
+    if value.tzinfo is None:
+        value = value.replace(tzinfo=timezone.utc)
+    return value.isoformat()
 
 def diff_grades(db_grades: dict, fresh_courses: dict) -> tuple[dict, list]:
     changes: dict = {}
