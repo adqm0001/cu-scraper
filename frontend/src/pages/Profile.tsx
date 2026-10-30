@@ -2,6 +2,8 @@ import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router';
 import { useAuthContext } from '../context/AuthContext.tsx';
 import { isTimeout, QUICK_TIMEOUT, SCRAPE_TIMEOUT, DEMO_RESTRICTED_MSG } from '../utils/errors.ts';
+import { ArrowUpRight, LogOut, ShieldCheck } from 'lucide-react';
+import './Dashboard.css';
 import './Profile.css';
 
 export function Profile() {
@@ -65,7 +67,7 @@ export function Profile() {
   }, []);
 
   async function handleSaveEmail() {
-    if (!newEmail || !emailCurrentPassword) return;
+    if (savingEmail || !newEmail || !emailCurrentPassword) return;
     setSavingEmail(true);
     try {
       const response = await fetch(`${import.meta.env.VITE_API_URL}/users/me/email`, {
@@ -102,7 +104,7 @@ export function Profile() {
   }
 
   async function handleSavePassword() {
-    if (!newPassword) return;
+    if (savingPassword || !newPassword) return;
     setSavingPassword(true);
     try {
       const response = await fetch(`${import.meta.env.VITE_API_URL}/users/me/password`, {
@@ -136,7 +138,7 @@ export function Profile() {
   }
 
   async function handleDeleteAccount() {
-    if (!deleteCurrentPassword) return;
+    if (deleting || !deleteCurrentPassword) return;
     setDeleting(true);
     try {
       const response = await fetch(`${import.meta.env.VITE_API_URL}/users/me`, {
@@ -171,21 +173,30 @@ export function Profile() {
   }
 
   return (
-    <div className="profile-page">
-      <nav className="profile-nav">
-        <span className="nav-logo" onClick={() => navigate('/app/dashboard')}>CU SCRAPER</span>
-        <div className="nav-actions">
-          <button className="btn-outline" onClick={() => navigate('/app/dashboard')}>Dashboard</button>
-          <button className="btn-outline" onClick={logOut}>Log out</button>
-        </div>
-      </nav>
+    <div className="profile-page dashboard-page">
+      <header className="dashboard-nav">
+        <a className="dashboard-brand" href="/app/dashboard" aria-label="CU Scraper dashboard">
+          <span className="dashboard-monogram">cu<span>.</span></span>
+          <span>CU Scraper<span className="dashboard-brand-caption">CARLETON GRADE TRACKER</span></span>
+        </a>
+        <nav className="dashboard-links" aria-label="Main navigation">
+          <button onClick={() => navigate('/app/dashboard')}>Overview <ArrowUpRight size={14} /></button>
+          <span className="dashboard-current" aria-current="page">Account</span>
+          <button className="dashboard-logout" onClick={logOut}><LogOut size={15} /><span>Log out</span></button>
+        </nav>
+      </header>
 
       <main className="profile-content">
-        <h1 className="profile-heading">Profile</h1>
+        {isDemo && <div className="dashboard-demo"><span>DEMO</span> You’re viewing a sample account. Account changes are disabled.</div>}
+        <div className="profile-intro">
+          <p className="dashboard-eyebrow">ACCOUNT SETTINGS</p>
+          <h1>Your account.</h1>
+          <p>Manage your details and where your grade updates go.</p>
+        </div>
 
         <div className="profile-card">
           <div className="profile-card-header">
-            <span className="profile-card-title">Account</span>
+            <h2 className="profile-card-title">Account details</h2><p>Your Carleton username and notification preferences.</p>
           </div>
           <div className="profile-card-body">
             <div className="profile-field">
@@ -194,12 +205,13 @@ export function Profile() {
             </div>
 
             <div className="profile-field">
-              <span className="profile-field-label">Notification Email</span>
+              <span className="profile-field-label">Notification email</span><span className="profile-field-hint">Grade updates are sent to this address.</span>
               {editingEmail ? (
                 <div className="email-edit-stack">
                   <input
                     className="profile-field-input"
                     type="email"
+                    aria-label="New notification email"
                     value={newEmail}
                     placeholder={email}
                     onChange={e => setNewEmail(e.target.value)}
@@ -210,6 +222,8 @@ export function Profile() {
                     className="profile-field-input"
                     type="password"
                     value={emailCurrentPassword}
+                    aria-label="Current password"
+                    autoComplete="current-password"
                     placeholder="Current password"
                     onChange={e => setEmailCurrentPassword(e.target.value)}
                     onKeyDown={e => { if (e.key === 'Enter') handleSaveEmail(); if (e.key === 'Escape') handleCancelEmail(); }}
@@ -232,13 +246,15 @@ export function Profile() {
             </div>
 
             <div className="profile-field">
-              <span className="profile-field-label">Carleton Password</span>
+              <span className="profile-field-label">Carleton password</span><span className="profile-field-hint">Changed your password at Carleton? Update it here to keep grade checks working.</span>
               {editingPassword ? (
                 <div className="email-edit-row">
                   <input
                     className="profile-field-input"
                     type="password"
                     value={newPassword}
+                    aria-label="New Carleton password"
+                    autoComplete="new-password"
                     placeholder="New Carleton password"
                     onChange={e => setNewPassword(e.target.value)}
                     onKeyDown={e => { if (e.key === 'Enter') handleSavePassword(); if (e.key === 'Escape') handleCancelPassword(); }}
@@ -268,13 +284,13 @@ export function Profile() {
 
         <div className="profile-card">
           <div className="profile-card-header">
-            <span className="profile-card-title">Security</span>
+            <h2 className="profile-card-title">Security & privacy</h2><p>How your account information is handled.</p>
           </div>
           <div className="profile-card-body">
             <div className="profile-field">
-              <span className="profile-field-label">Credential Storage</span>
+              <span className="profile-field-label profile-security-title"><ShieldCheck size={16} /> Encrypted credentials</span>
               <span className="profile-field-value">
-                Your Carleton credentials are stored using AES-128 encryption and are never shared or used outside of grade fetching.
+                Your Carleton credentials are encrypted using AES-128 and used to fetch your grades. Your saved password is never displayed here.
               </span>
             </div>
           </div>
@@ -282,23 +298,24 @@ export function Profile() {
 
         <div className="profile-card danger-card">
           <div className="profile-card-header">
-            <span className="profile-card-title">Danger Zone</span>
+            <h2 className="profile-card-title">Delete account</h2><p>Permanently remove your data from CU Scraper.</p>
           </div>
           <div className="profile-card-body">
             <p className="danger-description">
               Permanently delete your CU Scraper account and all associated data, including your stored credentials and grade history. This does not affect your real Carleton University account and cannot be undone.
             </p>
             <button className="btn-danger" onClick={() => guardDemo(() => setShowConfirm(true))}>
-              Delete Account
+              Delete account
             </button>
           </div>
         </div>
+        <footer className="dashboard-footer"><span>CU Scraper</span><span>Independent project. Not affiliated with Carleton University.</span></footer>
       </main>
 
       {showConfirm && (
         <div className="confirm-overlay" onClick={() => !deleting && handleCancelDelete()}>
-          <div className="confirm-dialog" onClick={e => e.stopPropagation()}>
-            <h2>Delete Account</h2>
+          <div className="confirm-dialog" role="dialog" aria-modal="true" aria-labelledby="delete-account-title" onClick={e => e.stopPropagation()}>
+            <h2 id="delete-account-title">Delete your account?</h2>
             <p>
               This will permanently delete your CU Scraper account, stored Carleton credentials, and all grade data.
               You will be logged out immediately. This does not affect your real Carleton University account.
@@ -307,9 +324,11 @@ export function Profile() {
               className="profile-field-input"
               type="password"
               value={deleteCurrentPassword}
+              aria-label="Password to confirm account deletion"
+              autoComplete="current-password"
               placeholder="Enter your password to confirm"
               onChange={e => setDeleteCurrentPassword(e.target.value)}
-              onKeyDown={e => { if (e.key === 'Escape') handleCancelDelete(); }}
+              onKeyDown={e => { if (e.key === 'Escape' && !deleting) handleCancelDelete(); }}
               autoFocus
             />
             <div className="confirm-actions">
@@ -324,7 +343,7 @@ export function Profile() {
         </div>
       )}
 
-      {notification && <div className="notification-toast">{notification}</div>}
+      {notification && <div className="notification-toast" role="status">{notification}</div>}
     </div>
   );
 }

@@ -19,13 +19,16 @@ export function TermCard({ termCode, courses, allCourses }: TermProps) {
   }
 
   const gpa = calcTermGpa();
+  const seasons: Record<string, string> = { '10': 'Winter', '20': 'Summer', '30': 'Fall' };
+  const season = seasons[termCode.slice(4)];
+  const termName = season ? `${season} ${termCode.slice(0, 4)}` : termCode;
 
   return (
     <div className="term-card">
       <div className="term-header">
-        <span className="term-name">{termCode}</span>
+        <div className="term-heading"><h3 className="term-name">{termName}</h3><span className="term-course-count">{allCourses.length} courses</span></div>
         {gpa !== null && (
-          <span className="term-gpa-badge">GPA {gpa.toFixed(2)}</span>
+          <span className="term-gpa-badge">Term GPA <strong>{gpa.toFixed(2)}</strong></span>
         )}
       </div>
 

@@ -1,384 +1,71 @@
-.profile-page {
-  min-height: 100vh;
-  background: #000;
-  display: flex;
-  flex-direction: column;
-}
-.profile-nav {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 20px 48px;
-  border-bottom: 1px solid #1a1a1a;
-  background: #000;
-  position: sticky;
-  top: 0;
-  z-index: 10;
-}
-
-.nav-logo {
-  font-size: 1.2rem;
-  font-weight: 700;
-  letter-spacing: 3px;
-  background: linear-gradient(90deg, #ff0000 0%, #ffffff 40%);
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
-  text-decoration: none;
-  cursor: pointer;
-}
-.profile-content {
-  flex: 1;
-  padding: 40px 48px;
-  max-width: 680px;
+.profile-page .profile-content {
   width: 100%;
+  max-width: 1264px;
+  padding: 32px 32px 0;
   margin: 0 auto;
-  display: flex;
-  flex-direction: column;
-  gap: 24px;
 }
 
-.profile-heading {
-  font-size: 1.5rem;
-  font-weight: 700;
-  letter-spacing: 1px;
-  color: white;
+.profile-intro { margin: 17px 0 48px; }
+.profile-intro h1 { font-size: clamp(27px, 3vw, 38px); font-weight: 600; letter-spacing: -1.5px; line-height: 1.2; }
+.profile-intro > p:last-child { color: #9c9ca4; font-size: 13px; margin-top: 12px; }
+.profile-card { display: grid; grid-template-columns: minmax(190px, .85fr) minmax(0, 1.8fr); gap: 60px; padding: 32px 0; border-top: 1px solid #303034; }
+.profile-card-header { padding-top: 2px; }
+.profile-card-title { font-size: 15px; font-weight: 600; color: #f3f3f4; letter-spacing: -.3px; }
+.profile-card-header p { max-width: 260px; font-size: 12px; line-height: 1.8; color: #9c9ca4; margin-top: 9px; }
+.profile-card-body { min-width: 0; display: flex; flex-direction: column; gap: 26px; }
+.profile-field { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+.profile-field-label { color: #e0e0e5; font-size: 12px; font-weight: 550; }
+.profile-field-hint { color: #9c9ca4; font-size: 11px; line-height: 1.8; max-width: 490px; }
+.profile-field-value { color: #c6c6ce; font-size: 13px; line-height: 1.8; overflow-wrap: anywhere; }
+.profile-field > .profile-field-value { padding-top: 3px; }
+.email-display-row { display: flex; justify-content: space-between; align-items: center; gap: 20px; padding: 10px 13px; border: 1px solid #343439; background: #171719; border-radius: 5px; min-height: 46px; }
+.email-display-row .profile-field-value { min-width: 0; }
+.profile-page button { font: inherit; }
+.profile-page .btn-edit { background: transparent; border: 0; color: #ededf1; font-size: 11px; font-weight: 600; cursor: pointer; padding: 4px 2px; flex-shrink: 0; }
+.profile-page .btn-edit:hover { text-decoration: underline; text-underline-offset: 4px; }
+.email-edit-stack { display: flex; flex-direction: column; gap: 10px; }
+.email-edit-row, .email-edit-actions { display: flex; align-items: center; gap: 10px; }
+.profile-field-input { min-width: 0; width: 100%; flex: 1; padding: 12px 13px; background: #171719; border: 1px solid #3b3b41; border-radius: 5px; color: #fff; font: inherit; font-size: 12px; outline: none; }
+.profile-field-input::placeholder { color: #92929c; }
+.profile-field-input:focus-visible { border-color: #a9a9b1; outline: 2px solid #c8102e; outline-offset: 3px; }
+.profile-page .btn-save, .profile-page .btn-cancel-inline, .profile-page .btn-cancel, .profile-page .btn-confirm-delete, .profile-page .btn-danger { padding: 10px 15px; border-radius: 5px; font-size: 11px; font-weight: 600; line-height: 1.5; cursor: pointer; white-space: nowrap; }
+.profile-page .btn-save, .profile-page .btn-confirm-delete { background: #c8102e; color: #fff; border: 1px solid #d51b38; }
+.profile-page .btn-save:hover:not(:disabled), .profile-page .btn-confirm-delete:hover:not(:disabled) { background: #de1736; }
+.profile-page .btn-cancel-inline, .profile-page .btn-cancel { background: transparent; color: #d4d4dd; border: 1px solid #3b3b41; }
+.profile-page .btn-cancel-inline:hover:not(:disabled), .profile-page .btn-cancel:hover:not(:disabled) { background: #222225; }
+.profile-page button:disabled { opacity: .5; cursor: not-allowed; }
+.profile-security-title { display: flex; gap: 9px; align-items: center; }
+.profile-security-title svg { color: #a5a5af; }
+.profile-page .danger-card { margin-top: 2px; }
+.danger-description { color: #a3a3ad; font-size: 12px; line-height: 1.9; max-width: 540px; }
+.profile-page .btn-danger { align-self: flex-start; border: 1px solid #7e2635; color: #f2f2f5; background: transparent; }
+.profile-page .btn-danger:hover { border-color: #c8102e; background: #261317; }
+.profile-page .danger-card .profile-card-title { color: #f3f3f4; }
+.profile-page .dashboard-footer { margin-top: 10px; }
+.profile-page .confirm-overlay { position: fixed; inset: 0; background: #000b; z-index: 50; display: flex; align-items: center; justify-content: center; padding: 20px; }
+.profile-page .confirm-dialog { width: 100%; max-width: 460px; border: 1px solid #3c3c42; border-radius: 8px; padding: 28px; background: #19191c; display: flex; flex-direction: column; gap: 20px; box-shadow: 0 24px 80px #0006; }
+.profile-page .confirm-dialog h2 { font-size: 20px; letter-spacing: -.6px; font-weight: 600; }
+.profile-page .confirm-dialog p { font-size: 12px; color: #b6b6bf; line-height: 1.9; }
+.profile-page .confirm-actions { display: flex; justify-content: flex-end; gap: 10px; }
+.profile-page .notification-toast { max-width: min(440px, calc(100vw - 40px)); font-size: 12px; line-height: 1.7; background: #222225; border-color: #414147; }
+@media (max-width: 900px) {
+  .profile-card { grid-template-columns: minmax(150px, .8fr) minmax(0, 1.6fr); gap: 30px; }
+  .email-edit-row { flex-wrap: wrap; }
+  .email-edit-row .profile-field-input { flex-basis: 100%; }
 }
-.profile-card {
-  background: #111;
-  border: 1px solid #1e1e1e;
-  border-radius: 10px;
-  overflow: hidden;
-}
-
-.profile-card-header {
-  padding: 16px 24px;
-  border-bottom: 1px solid #1a1a1a;
-}
-
-.profile-card-title {
-  font-size: 0.75rem;
-  letter-spacing: 1.5px;
-  text-transform: uppercase;
-  color: #555;
-  font-weight: 600;
-}
-
-.profile-card-body {
-  padding: 20px 24px;
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-.profile-field {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.profile-field-label {
-  font-size: 0.72rem;
-  letter-spacing: 1px;
-  color: #444;
-  text-transform: uppercase;
-}
-
-.profile-field-value {
-  font-size: 0.9rem;
-  color: #ccc;
-  background: #0d0d0d;
-  border: 1px solid #1e1e1e;
-  border-radius: 6px;
-  padding: 10px 14px;
-  font-family: 'Manrope', sans-serif;
-}
-
-.profile-field-hint {
-  font-size: 0.75rem;
-  color: #666;
-  line-height: 1.5;
-  margin-top: 2px;
-}
-.email-display-row {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.email-edit-row {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.email-edit-stack {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.email-edit-actions {
-  display: flex;
-  gap: 8px;
-}
-
-.profile-field-input {
-  flex: 1;
-  background: #0d0d0d;
-  border: 1px solid #333;
-  border-radius: 6px;
-  color: white;
-  padding: 10px 14px;
-  font-size: 0.9rem;
-  font-family: 'Manrope', sans-serif;
-  outline: none;
-  transition: border-color 0.15s;
-}
-
-.profile-field-input::placeholder {
-  color: #444;
-}
-
-.profile-field-input:focus {
-  border-color: #555;
-}
-
-.btn-edit {
-  padding: 6px 14px;
-  background: transparent;
-  color: #888;
-  border: 1px solid #2a2a2a;
-  border-radius: 5px;
-  font-size: 0.78rem;
-  font-family: 'Manrope', sans-serif;
-  font-weight: 600;
-  cursor: pointer;
-  white-space: nowrap;
-  transition: color 0.15s, border-color 0.15s;
-}
-
-.btn-edit:hover {
-  color: white;
-  border-color: #444;
-}
-
-.btn-save {
-  padding: 8px 16px;
-  background: white;
-  color: black;
-  border: none;
-  border-radius: 5px;
-  font-size: 0.85rem;
-  font-family: 'Manrope', sans-serif;
-  font-weight: 600;
-  cursor: pointer;
-  white-space: nowrap;
-  transition: background 0.15s;
-}
-
-.btn-save:hover:not(:disabled) {
-  background: #e0e0e0;
-}
-
-.btn-save:disabled {
-  opacity: 0.4;
-  cursor: not-allowed;
-}
-
-.btn-cancel-inline {
-  padding: 8px 16px;
-  background: transparent;
-  color: white;
-  border: 1px solid #333;
-  border-radius: 5px;
-  font-size: 0.85rem;
-  font-family: 'Manrope', sans-serif;
-  font-weight: 600;
-  cursor: pointer;
-  white-space: nowrap;
-  transition: border-color 0.15s;
-}
-
-.btn-cancel-inline:hover {
-  border-color: #555;
-}
-.danger-card {
-  border-color: rgba(255, 50, 50, 0.15);
-}
-
-.danger-card .profile-card-header {
-  border-bottom-color: rgba(255, 50, 50, 0.1);
-}
-
-.danger-card .profile-card-title {
-  color: #aa3333;
-}
-
-.danger-description {
-  font-size: 0.85rem;
-  color: #666;
-  line-height: 1.6;
-}
-
-.btn-danger {
-  align-self: flex-start;
-  padding: 9px 20px;
-  background: transparent;
-  color: #ff4444;
-  border: 1px solid rgba(255, 50, 50, 0.35);
-  border-radius: 5px;
-  font-size: 0.85rem;
-  font-family: 'Manrope', sans-serif;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background 0.15s, border-color 0.15s;
-}
-
-.btn-danger:hover {
-  background: rgba(255, 50, 50, 0.08);
-  border-color: rgba(255, 50, 50, 0.6);
-}
-.confirm-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.75);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 50;
-}
-
-.confirm-dialog {
-  background: #111;
-  border: 1px solid #2a2a2a;
-  border-radius: 12px;
-  padding: 32px;
-  max-width: 400px;
-  width: 90%;
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-
-.confirm-dialog h2 {
-  font-size: 1.1rem;
-  font-weight: 700;
-  color: white;
-}
-
-.confirm-dialog p {
-  font-size: 0.85rem;
-  color: #777;
-  line-height: 1.6;
-}
-
-.confirm-actions {
-  display: flex;
-  gap: 10px;
-  justify-content: flex-end;
-  margin-top: 8px;
-}
-
-.btn-cancel {
-  padding: 9px 20px;
-  background: transparent;
-  color: white;
-  border: 1px solid #333;
-  border-radius: 5px;
-  font-size: 0.85rem;
-  font-family: 'Manrope', sans-serif;
-  font-weight: 600;
-  cursor: pointer;
-  transition: border-color 0.15s;
-}
-
-.btn-cancel:hover {
-  border-color: #555;
-}
-
-.btn-confirm-delete {
-  padding: 9px 20px;
-  background: #cc2222;
-  color: white;
-  border: none;
-  border-radius: 5px;
-  font-size: 0.85rem;
-  font-family: 'Manrope', sans-serif;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background 0.15s;
-}
-
-.btn-confirm-delete:hover:not(:disabled) {
-  background: #aa1a1a;
-}
-
-.btn-confirm-delete:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-.notification-toast {
-  position: fixed;
-  bottom: 32px;
-  right: 32px;
-  background: #1a1a1a;
-  border: 1px solid #333;
-  color: white;
-  padding: 12px 20px;
-  border-radius: 8px;
-  font-size: 0.85rem;
-  z-index: 100;
-  animation: fadeInUp 0.2s ease;
-}
-
-@keyframes fadeInUp {
-  from { opacity: 0; transform: translateY(8px); }
-  to   { opacity: 1; transform: translateY(0); }
-}
-@media (max-width: 768px) {
-  .profile-nav {
-    padding: 16px 24px;
-  }
-
-  .profile-content {
-    padding: 28px 24px;
-  }
-}
-
-@media (max-width: 480px) {
-  .profile-content {
-    padding: 24px 16px;
-  }
-
-  .profile-card-body {
-    padding: 18px 16px;
-  }
-
-  .email-edit-row {
-    flex-wrap: wrap;
-    gap: 10px;
-  }
-
-  .email-edit-row .profile-field-input {
-    flex: 1 1 100%;
-  }
-
-  .email-edit-row .btn-save,
-  .email-edit-row .btn-cancel-inline {
-    flex: 1;
-  }
-
-  .email-display-row {
-    flex-wrap: wrap;
-  }
-
-  .email-display-row .profile-field-value {
-    flex: 1 1 100%;
-    min-width: 0;
-    word-break: break-all;
-  }
-
-  .email-display-row .btn-edit {
-    margin-left: auto;
-  }
+@media (max-width: 600px) {
+  .profile-page .profile-content { padding: 25px 20px 0; }
+  .profile-intro { margin: 10px 0 30px; }
+  .profile-intro h1 { letter-spacing: -1px; }
+  .profile-intro > p:last-child { line-height: 1.8; font-size: 12px; }
+  .profile-card { grid-template-columns: 1fr; gap: 23px; padding: 27px 0; }
+  .profile-card-header p { max-width: none; margin-top: 6px; }
+  .profile-card-body { gap: 22px; }
+  .profile-page .dashboard-links { gap: 16px; }
+  .profile-page .dashboard-current { display: flex; }
+  .profile-page .dashboard-links > button:first-child { font-size: 0; gap: 0; }
+  .profile-page .dashboard-links > button:first-child svg { width: 16px; height: 16px; }
+  .profile-page .notification-toast { bottom: 20px; right: 20px; }
+  .profile-page .confirm-dialog { padding: 22px; }
+  .profile-page .confirm-actions { flex-wrap: wrap; }
 }

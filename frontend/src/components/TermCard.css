@@ -1,134 +1,21 @@
-.term-card {
-  background: #111;
-  border: 1px solid #1e1e1e;
-  border-radius: 10px;
-  overflow: hidden;
-  transition: border-color 0.15s;
-}
 
-.term-card:hover {
-  border-color: #2a2a2a;
-}
-
-.term-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 16px 24px;
-  border-bottom: 1px solid #1a1a1a;
-}
-
-.term-name {
-  font-size: 0.85rem;
-  font-weight: 700;
-  letter-spacing: 2px;
-  color: #888;
-  text-transform: uppercase;
-}
-
-.term-gpa-badge {
-  font-size: 0.8rem;
-  font-weight: 700;
-  color: #ff4444;
-  background: rgba(255, 50, 50, 0.08);
-  border: 1px solid rgba(255, 50, 50, 0.2);
-  border-radius: 20px;
-  padding: 4px 12px;
-  letter-spacing: 0.5px;
-}
-.table-scroll {
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
-}
-
-.course-table {
-  width: 100%;
-  min-width: 480px;
-  border-collapse: collapse;
-}
-
-.course-table thead tr {
-  border-bottom: 1px solid #1a1a1a;
-}
-
-.course-table th {
-  text-align: left;
-  padding: 10px 24px;
-  font-size: 0.7rem;
-  letter-spacing: 1.5px;
-  color: #444;
-  text-transform: uppercase;
-  font-weight: 600;
-}
-
-.course-table tbody tr {
-  border-bottom: 1px solid #161616;
-  transition: background 0.1s;
-}
-
-.course-table tbody tr:last-child {
-  border-bottom: none;
-}
-
-.course-table tbody tr:hover {
-  background: #161616;
-}
-
-.course-table td {
-  padding: 12px 24px;
-  font-size: 0.85rem;
-  color: #ccc;
-}
-
-.td-code {
-  font-weight: 700;
-  color: white;
-  white-space: nowrap;
-  width: 120px;
-}
-
-.td-title {
-  color: #aaa;
-}
-
-.td-grade {
-  font-weight: 700;
-  color: white;
-  width: 80px;
-}
-
-.td-credits {
-  color: #666;
-  width: 80px;
-}
-
-.td-qp {
-  color: #666;
-  width: 100px;
-  text-align: center;
-}
-
-.course-table th:last-child {
-  text-align: center;
-}
-
-.no-courses {
-  padding: 20px 24px;
-  color: #444;
-  font-size: 0.85rem;
-  text-align: center;
-}
-
-@media (max-width: 480px) {
-  .term-header {
-    padding: 12px 16px;
-  }
-
-  .course-table th {
-    padding: 8px 12px;
-  }
-
-  .course-table td {
-    padding: 10px 12px;
-  }
-}
+.dashboard-page .term-card { border: 1px solid #323237; border-radius: 6px; background: #151517; overflow: hidden; }
+.dashboard-page .term-header { display: flex; justify-content: space-between; align-items: center; padding: 19px 23px; border-bottom: 1px solid #323237; background: #1b1b1e; }
+.dashboard-page .term-heading { display: flex; align-items: center; gap: 14px; }
+.dashboard-page .term-name { font-size: 14px; font-weight: 600; letter-spacing: -.2px; }
+.dashboard-page .term-course-count { font-size: 10px; color: #93939e; }
+.dashboard-page .term-gpa-badge { color: #a2a2ad; font-size: 10px; }
+.dashboard-page .term-gpa-badge strong { color: #ececf0; font-size: 13px; font-weight: 600; margin-left: 9px; font-variant-numeric: tabular-nums; }
+.dashboard-page .table-scroll { overflow-x: auto; }
+.dashboard-page .course-table { width: 100%; border-collapse: collapse; min-width: 590px; }
+.dashboard-page .course-table th { font-size: 9px; font-weight: 500; letter-spacing: .6px; color: #9797a3; text-align: left; padding: 13px 23px; border-bottom: 1px solid #29292e; }
+.dashboard-page .course-table td { padding: 17px 23px; font-size: 12px; border-bottom: 1px solid #28282d; color: #b3b3bd; }
+.dashboard-page .course-table tbody tr:last-child td { border-bottom: 0; }
+.dashboard-page .course-table tbody tr:hover { background: #1c1c20; }
+.dashboard-page .course-table .td-code { width: 150px; font-size: 11px; white-space: nowrap; font-weight: 650; color: #eeeef1; font-variant-numeric: tabular-nums; }
+.dashboard-page .course-table .td-title { font-size: 12px; color: #c2c2cb; }
+.dashboard-page .course-table .td-grade { color: #f3f3f6; font-weight: 650; width: 90px; }
+.dashboard-page .course-table .td-credits, .dashboard-page .course-table .td-qp { width: 110px; font-size: 11px; font-variant-numeric: tabular-nums; }
+.dashboard-page .course-table th:nth-child(n+3), .dashboard-page .course-table td:nth-child(n+3) { text-align: right; }
+.dashboard-page .no-courses { padding: 25px; color: #a4a4af; font-size: 12px; }
+@media (max-width: 600px) { .dashboard-page .term-header { padding: 16px; } .dashboard-page .term-heading { gap: 10px; } .dashboard-page .term-name { font-size: 13px; } .dashboard-page .course-table { min-width: 560px; } .dashboard-page .course-table td, .dashboard-page .course-table th { padding: 14px 16px; } }

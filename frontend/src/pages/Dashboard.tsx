@@ -4,6 +4,7 @@ import { type Course } from '../utils/Course.ts';
 import { TermCard } from '../components/TermCard.tsx';
 import { useAuthContext } from '../context/AuthContext.tsx'
 import { isTimeout, QUICK_TIMEOUT, SCRAPE_TIMEOUT, DEMO_RESTRICTED_MSG } from '../utils/errors.ts'
+import { ArrowUpRight, LogOut, RefreshCw, Search, X } from 'lucide-react';
 import './Dashboard.css'
 
 interface GradesData {
@@ -12,7 +13,6 @@ interface GradesData {
 
 export function Dashboard(){
   const [searching, setSearching] = useState('');
-  const [searchMode, setSearchMode] = useState<'code' | 'name'>('code');
   const [grades, setGrades] = useState<GradesData | null>(null);
   const { token, setToken } = useAuthContext();
   const [cumulativeGpa, setCumulativeGpa] = useState<number | null>(null);
@@ -131,90 +131,82 @@ export function Dashboard(){
         termCode,
         allCourses: courses,
         courses: courses.filter(c => {
-          const q = searching.toLowerCase();
+          const q = searching.trim().toLowerCase();
           if (!q) return true;
-          if (searchMode === 'code') return `${c.subject}${c.course}`.toLowerCase().includes(q.replace(/\s+/g, ''));
-          return c.coursetitle.toLowerCase().includes(q);
+          return `${c.subject}${c.course}`.toLowerCase().includes(q.replace(/\s+/g, '')) || c.coursetitle.toLowerCase().includes(q);
         }),
       })).filter(({ courses }) => courses.length > 0 || !searching)
     : [];
 
+  const courseCount = grades ? Object.values(grades).reduce((total, courses) => total + courses.length, 0) : 0;
+  const shownCount = filteredEntries.reduce((total, entry) => total + entry.courses.length, 0);
+
   return (
     <div className="dashboard-page">
-      <nav className="dashboard-nav">
-        <span className="nav-logo">CU SCRAPER</span>
-        <div className="nav-actions">
-          <button className="btn-refresh" disabled={loading} onClick={handleRefresh}>
-            {loading ? 'Refreshing...' : 'Refresh Grades'}
-          </button>
-          <button className="btn-outline" onClick={() => navigate('/app/profile')}>Profile</button>
-          <button className="btn-outline btn-logout" onClick={logOut}>Log out</button>
-        </div>
-      </nav>
+      <header className="dashboard-nav">
+        <a className="dashboard-brand" href="/app/dashboard" aria-label="CU Scraper dashboard">
+          <span className="dashboard-monogram">cu<span>.</span></span>
+          <span>CU Scraper<span className="dashboard-brand-caption">CARLETON GRADE TRACKER</span></span>
+        </a>
+        <nav className="dashboard-links" aria-label="Main navigation">
+          <span className="dashboard-current" aria-current="page">Overview</span>
+          <button onClick={() => navigate('/app/profile')}>Account <ArrowUpRight size={14} /></button>
+          <button className="dashboard-logout" onClick={logOut}><LogOut size={15} /><span>Log out</span></button>
+        </nav>
+      </header>
 
       <main className="dashboard-content">
-        {isDemo && (
-          <div className="demo-banner">
-            <span className="demo-banner-tag">Demo Mode</span>
-            Sample data. Account changes and grade refresh are disabled.
+        {isDemo && <div className="dashboard-demo"><span>DEMO</span> You’re viewing sample grades. Account changes and refresh are disabled.</div>}
+        <section className="dashboard-intro" aria-labelledby="dashboard-title">
+          <div>
+            <p className="dashboard-eyebrow">ACADEMIC OVERVIEW</p>
+            <h1 id="dashboard-title">Your grades.</h1>
+            <p className="dashboard-subtitle">Your academic record, organised by term.</p>
           </div>
-        )}
-        <div className="stats-row">
-          <div className="stat-card">
-            <span className="stat-label">Cumulative GPA</span>
-            <span className="stat-value gpa">
-              {cumulativeGpa !== null ? cumulativeGpa.toFixed(2) : '—'}
-            </span>
+          <div className="dashboard-refresh-area">
+            <button className="dashboard-refresh" disabled={loading || isDemo} onClick={handleRefresh}>
+              <RefreshCw size={15} className={loading ? 'dashboard-spinning' : ''} />
+              {loading ? 'Checking grades…' : 'Refresh grades'}
+            </button>
+            <span className="dashboard-updated">Last checked {formatLastUpdated()}</span>
           </div>
-          <div className="stat-card">
-            <span className="stat-label">Total Credits</span>
-            <span className="stat-value">{totalCredits || '—'}</span>
-          </div>
-          <div className="stat-card">
-            <span className="stat-label">Terms</span>
-            <span className="stat-value">{termsCount || '—'}</span>
-          </div>
-          <div className="stat-card">
-            <span className="stat-label">Last Updated</span>
-            <span className="stat-value" style={{ fontSize: '1rem', paddingTop: '4px' }}>
-              {formatLastUpdated()}
-            </span>
-          </div>
-        </div>
+        </section>
 
-        <div className="search-row">
-          <input
-            className="search-input"
-            placeholder={searchMode === 'code' ? 'e.g. ECOR 1031' : 'e.g. Programming and Data Management'}
-            value={searching}
-            onChange={e => setSearching(e.target.value)}
-          />
-          <div className="search-toggle">
-            <button
-              className={`toggle-btn ${searchMode === 'code' ? 'active' : ''}`}
-              onClick={() => setSearchMode('code')}
-            >Code</button>
-            <button
-              className={`toggle-btn ${searchMode === 'name' ? 'active' : ''}`}
-              onClick={() => setSearchMode('name')}
-            >Name</button>
+        <section className="dashboard-summary" aria-label="Academic summary">
+          <div className="dashboard-metric dashboard-metric-gpa">
+            <span className="dashboard-metric-label">Cumulative GPA</span>
+            <div className="dashboard-metric-number">{cumulativeGpa !== null ? cumulativeGpa.toFixed(2) : '—'}<span>/ 12.00</span></div>
+            <span className="dashboard-metric-note">Across all graded courses</span>
           </div>
-        </div>
+          <div className="dashboard-metric">
+            <span className="dashboard-metric-label">Credits earned</span>
+            <div className="dashboard-metric-number">{grades ? totalCredits.toFixed(1) : '—'}</div>
+            <span className="dashboard-metric-note">Successfully completed</span>
+          </div>
+          <div className="dashboard-metric">
+            <span className="dashboard-metric-label">Courses</span>
+            <div className="dashboard-metric-number">{grades ? courseCount : '—'}</div>
+            <span className="dashboard-metric-note">In {termsCount} academic {termsCount === 1 ? 'term' : 'terms'}</span>
+          </div>
+          <div className="dashboard-metric"><span className="dashboard-metric-label">Academic terms</span><div className="dashboard-metric-number">{grades ? termsCount : '—'}</div><span className="dashboard-metric-note">On your record</span></div>
+        </section>
 
-        <div className="terms-list">
-          {grades === null ? (
-            <p className="empty-state">Loading grades...</p>
-          ) : filteredEntries.length === 0 ? (
-            <p className="empty-state">No courses found.</p>
-          ) : (
-            filteredEntries.map(({ termCode, courses, allCourses }) => (
-              <TermCard key={termCode} termCode={termCode} courses={courses} allCourses={allCourses} />
-            ))
-          )}
-        </div>
+        <section className="dashboard-records" aria-labelledby="records-title">
+          <div className="dashboard-records-toolbar">
+            <div className="dashboard-records-title"><h2 id="records-title">Course history</h2><span>{shownCount} {shownCount === 1 ? 'course' : 'courses'}</span></div>
+            <div className="dashboard-search">
+              <Search size={17} aria-hidden="true" />
+              <input aria-label="Search courses by code or name" placeholder="Search by code or course name" value={searching} onChange={e => setSearching(e.target.value)} />
+              {searching && <button onClick={() => setSearching('')} aria-label="Clear search"><X size={15} /></button>}
+            </div>
+          </div>
+          <div className="terms-list">
+            {grades === null ? <p className="dashboard-empty">Loading your academic record…</p> : filteredEntries.length === 0 ? <p className="dashboard-empty">No courses match “{searching}”. Try a course code or name.</p> : filteredEntries.map(({ termCode, courses, allCourses }) => <TermCard key={termCode} termCode={termCode} courses={courses} allCourses={allCourses} />)}
+          </div>
+        </section>
+        <footer className="dashboard-footer"><span>CU Scraper</span><span>Independent project. Not affiliated with Carleton University.</span></footer>
       </main>
-
-      {notification && <div className="notification-toast">{notification}</div>}
+      {notification && <div className="notification-toast" role="status">{notification}</div>}
     </div>
   );
 }
