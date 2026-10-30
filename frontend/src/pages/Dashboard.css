@@ -94,9 +94,10 @@
 .dashboard-intro h1 { font-size: clamp(27px, 3vw, 38px); line-height: 1.2; letter-spacing: -1.5px; font-weight: 600; }
 .dashboard-subtitle { font-size: 1rem; color: #9c9ca4; margin-top: 12px; }
 .dashboard-refresh-area { display: flex; flex-direction: column; align-items: flex-end; gap: 12px; }
-.dashboard-refresh { display: flex; align-items: center; gap: 9px; background: #c8102e; color: #fff; border: 1px solid #d51b38; padding: 11px 17px; border-radius: 5px; font-size: .9375rem !important; font-weight: 650 !important; white-space: nowrap; }
-.dashboard-refresh:hover:not(:disabled) { background: #de1736; }
-.dashboard-refresh:disabled { background: #252527; border-color: #38383d; color: #adadb5; cursor: not-allowed; }
+.dashboard-page .dashboard-refresh { display: inline-flex; align-items: center; justify-content: center; gap: 12px; min-height: 48px; background: #c8102e; color: #fff; border: 1px solid #c8102e; padding: 11px 20px; border-radius: 6px; font-size: 1rem; font-weight: 600; white-space: nowrap; transition: background .15s, border-color .15s; }
+.dashboard-page .dashboard-refresh:hover:not(:disabled) { background: #ae0e28; border-color: #ae0e28; }
+.dashboard-page .dashboard-refresh:active:not(:disabled) { background: #970c23; }
+.dashboard-page .dashboard-refresh:disabled { background: #781022; border-color: #781022; color: #dedee2; cursor: not-allowed; }
 .dashboard-updated { font-size: .8125rem; color: #95959d; }
 .dashboard-summary { display: grid; grid-template-columns: 1.2fr 1fr 1fr 1fr; padding: 7px 0 32px; margin-bottom: 31px; border-bottom: 1px solid #303034; }
 .dashboard-metric { padding: 0 30px; border-right: 1px solid #333336; }

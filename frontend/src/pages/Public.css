@@ -42,10 +42,11 @@
 .auth-password button:hover { color: #fff; background: #252528; }
 .auth-field-note { font-size: .8125rem; line-height: 1.8; color: #a0a0aa; }
 .auth-verification-note { margin-top: -7px; }
-.public-primary, .public-secondary { min-height: 46px; display: inline-flex; align-items: center; justify-content: center; gap: 9px; border-radius: 5px; padding: 11px 19px; font-size: .9375rem; font-weight: 600; text-decoration: none; cursor: pointer; line-height: 1.5; }
-.public-page .public-primary { background: #c8102e; border: 1px solid #d51b38; color: #fff; font-size: .9375rem; }
-.public-page .public-primary:hover:not(:disabled) { background: #de1736; }
-.public-page .public-primary:disabled { background: #252527; border-color: #38383d; color: #adadb5; cursor: not-allowed; }
+.public-primary, .public-secondary { min-height: 48px; display: inline-flex; align-items: center; justify-content: center; gap: 10px; border-radius: 6px; padding: 11px 20px; font-size: 1rem; font-weight: 600; text-decoration: none; cursor: pointer; line-height: 1.5; }
+.public-page .public-primary { background: #c8102e; border: 1px solid #c8102e; color: #fff; font-size: 1rem; transition: background .15s, border-color .15s; }
+.public-page .public-primary:hover:not(:disabled) { background: #ae0e28; border-color: #ae0e28; }
+.public-page .public-primary:active:not(:disabled) { background: #970c23; border-color: #970c23; }
+.public-page .public-primary:disabled { background: #781022; border-color: #781022; color: #dedee2; cursor: not-allowed; }
 .public-secondary { border: 1px solid #3b3b41; background: transparent; color: #c8c8d1; }
 .public-secondary:hover { color: #fff; background: #202023; }
 .auth-submit { width: 100%; margin-top: 4px; }

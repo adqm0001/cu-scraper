@@ -167,8 +167,8 @@ export function Dashboard(){
           </div>
           <div className="dashboard-refresh-area">
             <button className="dashboard-refresh" disabled={loading || isDemo} onClick={handleRefresh}>
-              <RefreshCw size={15} className={loading ? 'dashboard-spinning' : ''} />
               {loading ? 'Checking grades…' : 'Refresh grades'}
+              <RefreshCw size={17} strokeWidth={1.8} className={loading ? 'dashboard-spinning' : ''} aria-hidden="true" />
             </button>
             <span className="dashboard-updated">Last checked {formatLastUpdated()}</span>
           </div>
