@@ -25,7 +25,7 @@ export function About() {
               <span className="about-section-number">01 / GRADE CHECKS</span>
               <h2>Checking for you, in the background.</h2>
               <p>When you register, the app signs in to Carleton Central with the username and password you provide. It reads your course and grade information and saves a copy so it can compare future checks against it.</p>
-              <p>Background checks run roughly every 30 minutes while the service is running. If a check finds changed grades or new courses, the app sends an update to your notification email. You don’t need to keep the website open.</p>
+              <p>When grade emails are enabled, background checks run roughly every 30 minutes while the service is running. If a check finds changed grades or new courses, the app sends an update to your notification email. You don’t need to keep the website open.</p>
               <p>You can also use Refresh grades on the dashboard. Checks aren’t instant: Carleton availability, login issues, and email delivery can cause delays. Carleton Central remains the source for your official grades.</p>
             </section>
             <section id="your-data" className="about-section">
@@ -47,20 +47,27 @@ export function About() {
               <span className="about-section-number">03 / EMAIL NOTIFICATIONS</span>
               <h2>Sent to the address you choose.</h2>
               <p>Enter your preferred notification email when you register. To change it later, open Account, select Change beside Notification email, and confirm with your current CU Scraper password.</p>
-              <p>Grade updates are plain-text emails. Each update lists the term, course code, and detected grade. If multiple courses change in the same check, they appear in the same message.</p>
+              <p>Grade updates use a simple email layout, with a plain-text version for email apps that need it. Each update lists the term, course code, and detected grade. If multiple courses change in the same check, they appear in the same message.</p>
               <figure className="about-email">
                 <figcaption><Mail size={16} /><span>Example grade update</span><span className="about-example-tag">SAMPLE</span></figcaption>
                 <div className="about-email-meta"><span>To</span><span>you@example.com</span><span>Subject</span><strong>CU Scraper - Grade Update</strong></div>
-                <pre>{`The following grades have been updated:
-Term: 202430
-- ECOR 1031: A
-- MATH 1007: A+`}</pre>
+                <pre>{`Hi there,
+
+There are new grades on Carleton Central.
+Here’s what changed:
+
+Fall 2024
+ECOR 1031    A
+MATH 1007    A+`}</pre>
               </figure>
               <p>The app also sends a welcome message when you register. Changing your notification email sends a notice to your old address and a subscription confirmation to your new one. Deleting your account sends a final confirmation email.</p>
             </section>
             <section id="your-choices" className="about-section">
               <span className="about-section-number">04 / YOUR CHOICES</span>
               <h2>You control the account.</h2>
+              <h3>Pause or resume grade emails</h3>
+              <p>In Account, use the Grade update emails switch under Notifications. Turning it off pauses both grade emails and automatic checks, without deleting your account or saved grades. Manual dashboard refresh still works.</p>
+              <p>You can also use the unsubscribe link in a grade email. Opening the link shows a confirmation page; nothing changes until you confirm. Essential account emails, such as email-change and deletion confirmations, are still sent. To resume grade emails and automatic checks, turn the switch back on in Account.</p>
               <h3>Keep your Carleton password up to date</h3>
               <p>If you change your password at Carleton, update it in Account too. Otherwise the saved credentials won’t work and grade checks will fail. Until you update it here, CU Scraper still uses your previous app password for sign-in.</p>
               <h3>Delete your CU Scraper account</h3>

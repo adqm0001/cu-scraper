@@ -93,7 +93,7 @@ async def get_user_credentials(user_id: str):
     async with await psycopg.AsyncConnection.connect(db) as conn:
         async with conn.cursor() as cur:
                 await cur.execute("""
-                    SELECT username, password, email, is_test
+                    SELECT username, password, email, is_test, grade_emails_enabled
                     FROM users
                     WHERE user_id = %s
                     """,
@@ -102,7 +102,7 @@ async def get_user_credentials(user_id: str):
                 row = await cur.fetchone()
                 if row is None:
                     return "user_id not found"
-    return {"username": row[0], "password": fernet.decrypt(row[1].encode()).decode(), "email": fernet.decrypt(row[2].encode()).decode(), "is_test": row[3]}
+    return {"username": row[0], "password": fernet.decrypt(row[1].encode()).decode(), "email": fernet.decrypt(row[2].encode()).decode(), "is_test": row[3], "grade_emails_enabled": row[4]}
 
 
 async def get_grades(user_id: str, term_code=None):
@@ -198,7 +198,13 @@ async def check_changes(user_id: str, fresh_courses: dict):
         await delete_course(user_id, term, crn)
     return changes
 
-async def update_grades(user_id: str, courses: dict, notification: tuple[str, str, str] | None = None):
+def _encrypt(value: str | None) -> str | None:
+    return fernet.encrypt(value.encode()).decode() if value is not None else None
+
+def _decrypt(value: str | None) -> str | None:
+    return fernet.decrypt(value.encode()).decode() if value is not None else None
+
+async def update_grades(user_id: str, courses: dict, notification: tuple[str, str, str, str | None] | None = None):
     async with await psycopg.AsyncConnection.connect(db) as conn:
         async with conn.cursor() as cur:
 
@@ -231,10 +237,13 @@ async def update_grades(user_id: str, courses: dict, notification: tuple[str, st
                     """, (term_id, course["crn"], course["subject"], course["course"], course["section"], course["coursetitle"], enc_grade, enc_attempted, enc_earned, enc_gpahours, enc_qualitypoints))
 
             if notification:
-                recipient, subject, body = notification
-                await cur.execute(
-                    "INSERT INTO email_outbox (user_id, recipient, subject, body) VALUES (%s, %s, %s, %s)",
-                    (user_id, fernet.encrypt(recipient.encode()).decode(), fernet.encrypt(subject.encode()).decode(), fernet.encrypt(body.encode()).decode()),
+                recipient, subject, body, html_body = notification
+                await cur.execute("""
+                    INSERT INTO email_outbox (user_id, kind, recipient, subject, body, html_body)
+                    SELECT %s, 'grade_change', %s, %s, %s, %s
+                    WHERE EXISTS (SELECT 1 FROM users WHERE user_id = %s AND grade_emails_enabled)
+                    """,
+                    (user_id, _encrypt(recipient), _encrypt(subject), _encrypt(body), _encrypt(html_body), user_id),
                 )
 
         await conn.commit()
@@ -243,10 +252,13 @@ async def get_due_emails(limit: int = 20):
     async with await psycopg.AsyncConnection.connect(db) as conn:
         async with conn.cursor() as cur:
             await cur.execute("""
-                SELECT id, user_id, recipient, subject, body, attempts
-                FROM email_outbox
-                WHERE sent_at IS NULL AND failed_at IS NULL AND next_attempt_at <= NOW()
-                ORDER BY id
+                SELECT o.id, o.user_id, o.recipient, o.subject, o.body, o.html_body, o.attempts
+                FROM email_outbox o
+                JOIN users u ON u.user_id = o.user_id
+                WHERE o.sent_at IS NULL AND o.failed_at IS NULL AND o.cancelled_at IS NULL
+                  AND o.next_attempt_at <= NOW()
+                  AND (o.kind <> 'grade_change' OR u.grade_emails_enabled)
+                ORDER BY o.id
                 LIMIT %s
                 """, (limit,))
             rows = await cur.fetchall()
@@ -254,13 +266,28 @@ async def get_due_emails(limit: int = 20):
         {
             "id": row[0],
             "user_id": row[1],
-            "recipient": fernet.decrypt(row[2].encode()).decode(),
-            "subject": fernet.decrypt(row[3].encode()).decode(),
-            "body": fernet.decrypt(row[4].encode()).decode(),
-            "attempts": row[5],
+            "recipient": _decrypt(row[2]),
+            "subject": _decrypt(row[3]),
+            "body": _decrypt(row[4]),
+            "html": _decrypt(row[5]),
+            "attempts": row[6],
         }
         for row in rows
     ]
+
+async def set_grade_emails(user_id: str, enabled: bool) -> bool:
+    async with await psycopg.AsyncConnection.connect(db) as conn:
+        async with conn.cursor() as cur:
+            await cur.execute("UPDATE users SET grade_emails_enabled = %s WHERE user_id = %s", (enabled, user_id))
+            if cur.rowcount == 0:
+                return False
+            await cur.execute("""
+                UPDATE email_outbox SET cancelled_at = NOW()
+                WHERE user_id = %s AND kind = 'grade_change'
+                  AND sent_at IS NULL AND failed_at IS NULL AND cancelled_at IS NULL
+                """, (user_id,))
+        await conn.commit()
+    return True
 
 async def mark_email_sent(email_id: int):
     async with await psycopg.AsyncConnection.connect(db) as conn:
@@ -347,7 +374,7 @@ async def get_users():
         async with conn.cursor() as cur:
             await cur.execute("""
                 SELECT user_id, username, password, email from users
-                WHERE is_test = false
+                WHERE is_test = false AND grade_emails_enabled = true
                 """)
 
             rows = await cur.fetchall()

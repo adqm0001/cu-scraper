@@ -6,7 +6,7 @@ from poller import retry_delay, deliver_pending_emails
 
 
 def pending(email_id=1, attempts=0):
-    return {"id": email_id, "user_id": 7, "recipient": "j@example.com", "subject": "s", "body": "b", "attempts": attempts}
+    return {"id": email_id, "user_id": 7, "recipient": "j@example.com", "subject": "s", "body": "b", "html": "<p>b</p>", "attempts": attempts}
 
 
 def record(calls, name):
@@ -67,7 +67,7 @@ def test_final_failure_gives_up_and_alerts(monkeypatch):
 
 
 def test_one_failure_does_not_block_other_emails(monkeypatch):
-    def send(to, subject, body):
+    def send(to, subject, body, html):
         if to == "bad@example.com":
             raise smtplib.SMTPException("boom")
 
@@ -78,3 +78,12 @@ def test_one_failure_does_not_block_other_emails(monkeypatch):
 
     assert ("retry", 1, 60, "SMTPException") in calls
     assert ("sent", 2) in calls
+
+
+def test_html_version_is_passed_to_the_sender(monkeypatch):
+    received = []
+    setup_outbox(monkeypatch, [pending()], lambda *args: received.append(args))
+
+    asyncio.run(deliver_pending_emails())
+
+    assert received == [("j@example.com", "s", "b", "<p>b</p>")]

@@ -2,9 +2,10 @@ from dotenv import load_dotenv
 from datetime import datetime, timedelta
 from cu_scraper import info
 from db import register as db_register, fetch_and_store_grades, get_user, get_grades as db_get_grades, delete_user as db_delete_user, check_changes, update_grades
-from db import get_user_credentials, update_email as db_update_email, update_password as db_update_password, verify_user_password, get_demo_user_id
+from db import get_user_credentials, update_email as db_update_email, update_password as db_update_password, verify_user_password, get_demo_user_id, set_grade_emails
+from tokens import read_unsubscribe_token, unsubscribe_url
 import os
-from poller import send_welcome_email, send_goodbye_email, build_grade_change_email, send_email_changed_old, send_email_changed_new
+from poller import send_welcome_email, send_goodbye_email, build_grade_change_notification, send_email_changed_old, send_email_changed_new
 from fastapi import BackgroundTasks, FastAPI, HTTPException, Depends, Request
 from jose import jwt
 from jose.exceptions import JWTError
@@ -64,6 +65,12 @@ class UpdatePasswordRequest(BaseModel):
 
 class DeleteAccountRequest(BaseModel):
     current_password: str = Field(max_length=70)
+
+class NotificationSettingsRequest(BaseModel):
+    grade_emails_enabled: bool
+
+class UnsubscribeRequest(BaseModel):
+    token: str = Field(max_length=500)
 
 class LoginRequest(BaseModel):
     username: str = Field(max_length=50)
@@ -149,7 +156,7 @@ async def check_grades(request: Request, user_id: Annotated[str, Depends(get_cur
     _,_,_,_, fresh_courses, _ = result 
     changes = await check_changes(user_id, fresh_courses)
     if changes:
-        await update_grades(user_id, changes, notification=(user_creds["email"], *build_grade_change_email(changes)))
+        await update_grades(user_id, changes, notification=(user_creds["email"], *build_grade_change_notification(changes, unsubscribe_url(user_id), user_creds["username"])))
 
     await fetch_and_store_grades(user_id, result)
     
@@ -161,7 +168,32 @@ async def get_me(user_id: Annotated[str, Depends(get_current_user_id)]):
     if user == "user_id not found":
         raise HTTPException(status_code=404, detail="user not found")
 
-    return {"username": user["username"], "email": user["email"], "is_demo": user["is_test"]}
+    return {
+        "username": user["username"],
+        "email": user["email"],
+        "is_demo": user["is_test"],
+        "grade_emails_enabled": user["grade_emails_enabled"],
+    }
+
+@app.patch("/users/me/notifications")
+@limiter.limit("10/minute")
+async def update_notifications(request: Request, req: NotificationSettingsRequest, user_id: Annotated[str, Depends(get_current_user_id)]):
+    user = await get_user_credentials(user_id)
+    if user == "user_id not found":
+        raise HTTPException(status_code=404, detail="user not found")
+    if user["is_test"]:
+        raise HTTPException(status_code=403, detail=DEMO_FORBIDDEN)
+
+    await set_grade_emails(user_id, req.grade_emails_enabled)
+    return {"grade_emails_enabled": req.grade_emails_enabled}
+
+@app.post("/unsubscribe")
+@limiter.limit("10/minute")
+async def unsubscribe(request: Request, req: UnsubscribeRequest):
+    user_id = read_unsubscribe_token(req.token)
+    if user_id is None or not await set_grade_emails(user_id, False):
+        raise HTTPException(status_code=400, detail="invalid unsubscribe link")
+    return {"success": True}
 
 @app.patch("/users/me/email")
 @limiter.limit("5/minute")

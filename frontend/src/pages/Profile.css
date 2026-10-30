@@ -75,3 +75,19 @@
 .profile-field-input { font-size: 1rem; min-height: 46px; }
 .profile-page .email-display-row { min-height: 52px; }
 @media (max-width: 600px) { .profile-page .btn-edit { min-height: 44px; } .profile-page .dashboard-links { gap: 12px; } }
+
+.notification-preference { border: 1px solid #343439; border-radius: 5px; background: #171719; }
+.notification-preference-heading { display: flex; align-items: center; justify-content: space-between; gap: 20px; padding: 16px 18px; }
+.notification-preference-heading .profile-field-hint { margin: 6px 0 0; }
+.notification-preference-status { display: flex; align-items: baseline; gap: 12px; padding: 13px 18px; border-top: 1px solid #303034; font-size: .875rem; color: #a8a8b2; line-height: 1.7; }
+.notification-status-label { color: #e0e0e5; font-weight: 600; flex-shrink: 0; }
+.notification-account-note { margin-top: -12px; }
+.profile-page .profile-switch { position: relative; flex-shrink: 0; width: 52px; height: 44px; border-radius: 6px; border: 0; background: transparent; cursor: pointer; padding: 0; }
+.profile-switch::before { content: ''; position: absolute; inset: 8px 0; border-radius: 16px; border: 1px solid #505057; background: #2a2a2e; transition: background .15s, border-color .15s; }
+.profile-switch.is-on::before { background: #c8102e; border-color: #d51b38; }
+.profile-page .profile-switch:disabled { opacity: .5; cursor: not-allowed; }
+.profile-page .profile-switch:focus-visible { outline: 2px solid #c8102e; outline-offset: 3px; }
+.profile-switch-thumb { position: absolute; top: 12px; left: 4px; width: 20px; height: 20px; border-radius: 50%; background: #e6e6ea; transition: transform .15s; }
+.profile-switch.is-on .profile-switch-thumb { transform: translateX(24px); background: #fff; }
+@media (max-width: 600px) { .notification-preference-heading { padding: 15px; gap: 12px; } .notification-preference-status { padding: 13px 15px; flex-direction: column; gap: 4px; } }
+@media (prefers-reduced-motion: reduce) { .profile-switch::before, .profile-switch-thumb { transition: none; } }

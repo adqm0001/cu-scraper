@@ -1,9 +1,10 @@
 import smtplib
 from dotenv import load_dotenv
 import os
-from email.mime.text import MIMEText
+from email_templates import build_grade_email_html, create_email_message
 from db import get_users, check_changes, update_grades, update_last_checked, get_due_emails, mark_email_sent, mark_email_retry, mark_email_failed
 from cu_scraper import info
+from tokens import FRONTEND_URL, unsubscribe_url
 import asyncio
 import httpx
 load_dotenv()
@@ -23,7 +24,7 @@ You will now be notified whenever one of your grades update on the Carleton Cent
     return subject, body
 
 
-def build_grade_change_email(changes: dict) -> tuple[str, str]:
+def build_grade_change_email(changes: dict, unsubscribe_link: str | None = None) -> tuple[str, str]:
     subject = "CU Scraper - Grade Update"
     header = "The following grades have been updated:\n"
     lines = []
@@ -32,7 +33,16 @@ def build_grade_change_email(changes: dict) -> tuple[str, str]:
         for course in changes[term]:
             lines.append(f"- {course['subject']} {course['course']}: {course['finalgrade']}")
     body = header + "\n".join(lines)
+    if unsubscribe_link:
+        body += f"\n\nDon't want these emails anymore? Unsubscribe from grade updates:\n{unsubscribe_link}"
     return subject, body
+
+
+def build_grade_change_notification(changes: dict, unsubscribe_link: str | None = None, username: str | None = None) -> tuple[str, str, str]:
+    subject, text = build_grade_change_email(changes, unsubscribe_link)
+    text += f"\n\nOpen your dashboard: {FRONTEND_URL}/app/dashboard\nChange notification email: {FRONTEND_URL}/app/profile"
+    html = build_grade_email_html(changes, FRONTEND_URL, unsubscribe_link, username)
+    return subject, text, html
 
 
 def build_email_changed_old_email(username: str) -> tuple[str, str]:
@@ -63,15 +73,12 @@ Your CU Scraper account has been successfully deleted. You will no longer receiv
     return subject, body
 
 
-def send_email(to: str, subject: str, body: str) -> None:
+def send_email(to: str, subject: str, body: str, html: str | None = None) -> None:
     sender = os.getenv("GOOGLE_EMAIL")
     password = os.getenv("GOOGLE_PASSWORD")
     assert sender and password, "email credentials not found in .env"
 
-    msg = MIMEText(body)
-    msg["Subject"] = subject
-    msg["From"] = sender
-    msg["To"] = to
+    msg = create_email_message(to, sender, subject, body, html)
 
     with smtplib.SMTP_SSL("smtp.gmail.com", 465, timeout=SMTP_TIMEOUT_SECONDS) as smtp_server:
         smtp_server.login(sender, password)
@@ -115,7 +122,7 @@ async def scrape_user(user, sem):
         _,_,_,_, fresh_courses,_ = result
     changes = await check_changes(user_id, fresh_courses)
     if changes:
-        await update_grades(user_id, changes, notification=(email, *build_grade_change_email(changes)))
+        await update_grades(user_id, changes, notification=(email, *build_grade_change_notification(changes, unsubscribe_url(user_id), username)))
     await update_last_checked(user_id)
 
 def retry_delay(attempts_before_failure: int) -> int | None:
@@ -135,7 +142,7 @@ async def alert_discord(text: str) -> None:
 async def deliver_pending_emails() -> None:
     for email in await get_due_emails():
         try:
-            await asyncio.to_thread(send_email, email["recipient"], email["subject"], email["body"])
+            await asyncio.to_thread(send_email, email["recipient"], email["subject"], email["body"], email["html"])
         except Exception as e:
             error = type(e).__name__
             delay = retry_delay(email["attempts"])

@@ -5,6 +5,7 @@ import { Profile } from './pages/Profile.tsx'
 import { NotFound } from './pages/NotFound.tsx'
 import { Demo } from './pages/Demo.tsx'
 import { About } from './pages/About.tsx'
+import { Unsubscribe } from './pages/Unsubscribe.tsx'
 import { AuthProvider } from './context/AuthContext.tsx'
 import { ProtectedLayout } from './layouts/ProtectedLayout.tsx'
 import { BrowserRouter, Routes, Route } from 'react-router';
@@ -25,6 +26,7 @@ function App() {
           </Route>
           <Route path="about" element={<About />} />
           <Route path="demo" element={<Demo />} />
+          <Route path="unsubscribe" element={<Unsubscribe />} />
           <Route path="app" element={<ProtectedLayout />}>
               <Route path="dashboard" element={<Dashboard />} />
               <Route path="profile" element={<Profile />} />

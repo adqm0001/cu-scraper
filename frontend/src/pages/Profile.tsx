@@ -23,6 +23,8 @@ export function Profile() {
   const [deleting, setDeleting] = useState(false);
   const [notification, setNotification] = useState('');
   const [isDemo, setIsDemo] = useState(false);
+  const [gradeEmails, setGradeEmails] = useState<boolean | null>(null);
+  const [savingGradeEmails, setSavingGradeEmails] = useState(false);
   const notificationTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   function showNotification(msg: string) {
@@ -58,6 +60,7 @@ export function Profile() {
         setUsername(data.username);
         setEmail(data.email);
         setIsDemo(data.is_demo === true);
+        setGradeEmails(data.grade_emails_enabled !== false);
       } catch (err) {
         showNotification(isTimeout(err) ? 'Loading your profile timed out. Please refresh.' : 'Failed to load your profile. Please refresh.');
       }
@@ -65,6 +68,34 @@ export function Profile() {
     fetchMe();
     return () => { if (notificationTimeout.current) clearTimeout(notificationTimeout.current); };
   }, []);
+
+  async function toggleGradeEmails() {
+    if (savingGradeEmails || gradeEmails === null) return;
+    const next = !gradeEmails;
+    setSavingGradeEmails(true);
+    try {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/users/me/notifications`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ grade_emails_enabled: next }),
+        signal: AbortSignal.timeout(QUICK_TIMEOUT),
+      });
+      if (response.ok) {
+        setGradeEmails(next);
+        showNotification(next ? 'Grade emails turned on' : 'Grade emails paused');
+      } else if (response.status === 401) {
+        logOut();
+      } else if (response.status === 403) {
+        showNotification(DEMO_RESTRICTED_MSG);
+      } else {
+        showNotification('Failed to update your notification settings. Please try again.');
+      }
+    } catch (err) {
+      showNotification(isTimeout(err) ? 'The request timed out. Please try again.' : 'Network error. Please try again.');
+    } finally {
+      setSavingGradeEmails(false);
+    }
+  }
 
   async function handleSaveEmail() {
     if (savingEmail || !newEmail || !emailCurrentPassword) return;
@@ -196,7 +227,7 @@ export function Profile() {
 
         <div className="profile-card">
           <div className="profile-card-header">
-            <h2 className="profile-card-title">Account details</h2><p>Your Carleton username and notification preferences.</p>
+            <h2 className="profile-card-title">Account details</h2><p>Your Carleton username and saved login details.</p>
           </div>
           <div className="profile-card-body">
             <div className="profile-field">
@@ -204,6 +235,49 @@ export function Profile() {
               <span className="profile-field-value">{username || '—'}</span>
             </div>
 
+            <div className="profile-field">
+              <span className="profile-field-label">Carleton password</span><span className="profile-field-hint">Changed your password at Carleton? Update it here to keep grade checks working.</span>
+              {editingPassword ? (
+                <div className="email-edit-row">
+                  <input
+                    className="profile-field-input"
+                    type="password"
+                    value={newPassword}
+                    aria-label="New Carleton password"
+                    autoComplete="new-password"
+                    placeholder="New Carleton password"
+                    onChange={e => setNewPassword(e.target.value)}
+                    onKeyDown={e => { if (e.key === 'Enter') handleSavePassword(); if (e.key === 'Escape') handleCancelPassword(); }}
+                    autoFocus
+                  />
+                  <button className="btn-save" disabled={savingPassword || !newPassword} onClick={handleSavePassword}>
+                    {savingPassword ? 'Verifying...' : 'Save'}
+                  </button>
+                  <button className="btn-cancel-inline" disabled={savingPassword} onClick={handleCancelPassword}>
+                    Cancel
+                  </button>
+                </div>
+              ) : (
+                <div className="email-display-row">
+                  <span className="profile-field-value">••••••••</span>
+                  <button className="btn-edit" onClick={() => guardDemo(() => setEditingPassword(true))}>Change</button>
+                </div>
+              )}
+              {editingPassword && (
+                <span className="profile-field-hint">
+                  Update this whenever you change your Carleton password, otherwise grade checking will stop working.
+                </span>
+              )}
+            </div>
+          </div>
+        </div>
+
+        <section className="profile-card" aria-labelledby="notification-settings-title">
+          <div className="profile-card-header">
+            <h2 className="profile-card-title" id="notification-settings-title">Notifications</h2>
+            <p>Choose where grade updates go, or pause them for a while.</p>
+          </div>
+          <div className="profile-card-body">
             <div className="profile-field">
               <span className="profile-field-label">Notification email</span><span className="profile-field-hint">Grade updates are sent to this address.</span>
               {editingEmail ? (
@@ -245,42 +319,33 @@ export function Profile() {
               )}
             </div>
 
-            <div className="profile-field">
-              <span className="profile-field-label">Carleton password</span><span className="profile-field-hint">Changed your password at Carleton? Update it here to keep grade checks working.</span>
-              {editingPassword ? (
-                <div className="email-edit-row">
-                  <input
-                    className="profile-field-input"
-                    type="password"
-                    value={newPassword}
-                    aria-label="New Carleton password"
-                    autoComplete="new-password"
-                    placeholder="New Carleton password"
-                    onChange={e => setNewPassword(e.target.value)}
-                    onKeyDown={e => { if (e.key === 'Enter') handleSavePassword(); if (e.key === 'Escape') handleCancelPassword(); }}
-                    autoFocus
-                  />
-                  <button className="btn-save" disabled={savingPassword || !newPassword} onClick={handleSavePassword}>
-                    {savingPassword ? 'Verifying...' : 'Save'}
-                  </button>
-                  <button className="btn-cancel-inline" disabled={savingPassword} onClick={handleCancelPassword}>
-                    Cancel
-                  </button>
+            <div className="notification-preference" aria-busy={savingGradeEmails}>
+              <div className="notification-preference-heading">
+                <div>
+                  <span className="profile-field-label" id="grade-emails-label">Grade update emails</span>
+                  <p className="profile-field-hint" id="grade-emails-description">Email me when a grade changes on Carleton Central.</p>
                 </div>
-              ) : (
-                <div className="email-display-row">
-                  <span className="profile-field-value">••••••••</span>
-                  <button className="btn-edit" onClick={() => guardDemo(() => setEditingPassword(true))}>Change</button>
-                </div>
-              )}
-              {editingPassword && (
-                <span className="profile-field-hint">
-                  Update this whenever you change your Carleton password, otherwise grade checking will stop working.
-                </span>
-              )}
+                <button
+                  type="button"
+                  role="switch"
+                  aria-checked={gradeEmails === true}
+                  aria-labelledby="grade-emails-label"
+                  aria-describedby="grade-emails-description"
+                  className={`profile-switch${gradeEmails ? ' is-on' : ''}`}
+                  disabled={gradeEmails === null || savingGradeEmails}
+                  onClick={() => guardDemo(toggleGradeEmails)}
+                >
+                  <span className="profile-switch-thumb" />
+                </button>
+              </div>
+              <div className="notification-preference-status" role="status">
+                <span className="notification-status-label">{savingGradeEmails ? 'Saving…' : gradeEmails === null ? 'Loading…' : gradeEmails ? 'Enabled' : 'Paused'}</span>
+                <span>{gradeEmails === false ? 'Automatic checks are paused. You can still refresh grades from your dashboard.' : 'Automatic checks run in the background while grade emails are enabled.'}</span>
+              </div>
             </div>
+            <p className="profile-field-hint notification-account-note">Account confirmations are still sent when grade emails are paused.</p>
           </div>
-        </div>
+        </section>
 
         <div className="profile-card">
           <div className="profile-card-header">

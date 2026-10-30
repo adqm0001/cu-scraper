@@ -104,14 +104,14 @@ def test_get_me_returns_username_and_email_only(client, monkeypatch, as_user, as
     as_user("1")
     monkeypatch.setattr(
         "server.get_user_credentials",
-        async_mock({"username": "jdoe", "password": "SECRET", "email": "j@example.com", "is_test": False}),
+        async_mock({"username": "jdoe", "password": "SECRET", "email": "j@example.com", "is_test": False, "grade_emails_enabled": True}),
     )
 
     response = client.get("/users/me", headers={"Authorization": "Bearer x"})
 
     assert response.status_code == 200
     body = response.json()
-    assert body == {"username": "jdoe", "email": "j@example.com", "is_demo": False}
+    assert body == {"username": "jdoe", "email": "j@example.com", "is_demo": False, "grade_emails_enabled": True}
     assert "password" not in body
 
 
@@ -125,7 +125,7 @@ def test_update_email_success(client, monkeypatch, as_user, async_mock):
     monkeypatch.setattr("server.verify_user_password", async_mock(True))
     monkeypatch.setattr(
         "server.get_user_credentials",
-        async_mock({"username": "jdoe", "password": "pw", "email": "old@example.com", "is_test": False}),
+        async_mock({"username": "jdoe", "password": "pw", "email": "old@example.com", "is_test": False, "grade_emails_enabled": True}),
     )
     monkeypatch.setattr("server.db_update_email", async_mock(None))
     monkeypatch.setattr("server.send_email_changed_old", lambda *a, **k: None)
@@ -141,8 +141,8 @@ def test_update_email_success(client, monkeypatch, as_user, async_mock):
     assert response.json() == {"success": True}
 
 
-REAL_USER = {"username": "jdoe", "password": "pw", "email": "j@example.com", "is_test": False}
-DEMO_USER = {"username": "__test_user__", "password": "pw", "email": "demo@example.com", "is_test": True}
+REAL_USER = {"username": "jdoe", "password": "pw", "email": "j@example.com", "is_test": False, "grade_emails_enabled": True}
+DEMO_USER = {"username": "__test_user__", "password": "pw", "email": "demo@example.com", "is_test": True, "grade_emails_enabled": True}
 
 
 def test_update_email_wrong_password(client, monkeypatch, as_user, async_mock):
@@ -163,7 +163,7 @@ def test_update_password_success(client, monkeypatch, as_user, async_mock):
     as_user("1")
     monkeypatch.setattr(
         "server.get_user_credentials",
-        async_mock({"username": "jdoe", "password": "pw", "email": "j@example.com", "is_test": False}),
+        async_mock({"username": "jdoe", "password": "pw", "email": "j@example.com", "is_test": False, "grade_emails_enabled": True}),
     )
     monkeypatch.setattr("server.info", async_mock(FAKE_INFO))
     monkeypatch.setattr("server.db_update_password", async_mock(None))
@@ -181,7 +181,7 @@ def test_update_password_rejected_by_carleton(client, monkeypatch, as_user, asyn
     as_user("1")
     monkeypatch.setattr(
         "server.get_user_credentials",
-        async_mock({"username": "jdoe", "password": "pw", "email": "j@example.com", "is_test": False}),
+        async_mock({"username": "jdoe", "password": "pw", "email": "j@example.com", "is_test": False, "grade_emails_enabled": True}),
     )
     monkeypatch.setattr("server.info", async_mock(None))
 
@@ -199,7 +199,7 @@ def test_delete_user_success(client, monkeypatch, as_user, async_mock):
     monkeypatch.setattr("server.verify_user_password", async_mock(True))
     monkeypatch.setattr(
         "server.get_user_credentials",
-        async_mock({"username": "jdoe", "password": "pw", "email": "j@example.com", "is_test": False}),
+        async_mock({"username": "jdoe", "password": "pw", "email": "j@example.com", "is_test": False, "grade_emails_enabled": True}),
     )
     monkeypatch.setattr("server.db_delete_user", async_mock(None))
     monkeypatch.setattr("server.send_goodbye_email", lambda *a, **k: None)
@@ -233,7 +233,7 @@ def test_update_password_rejects_test_account(client, monkeypatch, as_user, asyn
     as_user("1")
     monkeypatch.setattr(
         "server.get_user_credentials",
-        async_mock({"username": "jdoe", "password": "pw", "email": "j@example.com", "is_test": True}),
+        async_mock({"username": "jdoe", "password": "pw", "email": "j@example.com", "is_test": True, "grade_emails_enabled": True}),
     )
 
     response = client.patch(
